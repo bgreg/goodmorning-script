@@ -1,0 +1,46 @@
+name: Test Suite
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: macos-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Check zsh version
+      run: zsh --version
+
+    - name: Install optional dependencies
+      run: |
+        brew install jq figlet
+
+    - name: Run syntax validation tests
+      run: ./tests/test-phase1-syntax.sh
+
+    - name: Run security tests
+      run: ./tests/test-phase2-security.sh
+
+    - name: Run resource management tests
+      run: ./tests/test-phase3-resources.sh
+
+    - name: Run integration tests
+      run: ./tests/test-phase4-integration.sh
+
+    - name: Run functional tests
+      run: ./tests/test-phase5-functional.sh
+
+    - name: Run error handling tests
+      run: ./tests/test-phase6-errorhandling.sh
+
+    - name: Run regression tests
+      run: ./tests/test-phase7-regression.sh
+
+    - name: Run all tests
+      run: ./tests/run-all-tests.sh

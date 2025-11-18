@@ -1,0 +1,26 @@
+## ShellSpec Configuration
+
+## Default shell
+--shell zsh
+
+## Helper file (loaded before each spec)
+--require spec_helper
+
+## Shell options (exported to test environment)
+--env GOODMORNING_NO_AUTO_RUN=1
+--env GOODMORNING_SHOW_SETUP_MESSAGES=false
+
+## Output format
+--format documentation
+
+## Fail fast (stop on first failure)
+# --fail-fast
+
+## Random execution order
+# --random
+
+## Coverage (requires kcov)
+# --kcov
+
+## Parallel execution (faster test runs)
+# --jobs 4
