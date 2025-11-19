@@ -65,10 +65,10 @@ shellspec spec/lib/                  # Library specs
 
 ### Run E2E Tests (Real APIs)
 
-E2E tests hit real APIs and require internet connectivity:
+E2E tests hit real APIs and require internet connectivity. They're skipped by default:
 
 ```bash
-shellspec --tag real
+SHELLSPEC_REAL=1 shellspec
 ```
 
 ### Test Output Formats
