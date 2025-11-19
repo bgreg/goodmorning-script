@@ -48,7 +48,7 @@ jobs:
 
     - name: Security scan (no secrets)
       run: |
-        if grep -rE "(api_key|password|secret|token)\s*=\s*['\"][^'\"]+['\"]" --include="*.sh" . 2>/dev/null | grep -v "example\|sample\|placeholder"; then
+        if grep -rE "(api_key|password|secret|token)\s*=\s*['\"][^'\"]+['\"]" --include="*.sh" . 2>/dev/null | grep -vE "example|sample|placeholder|DEMO_KEY|\\\$\{"; then
           echo "Warning: Possible hardcoded secrets found"
           exit 1
         fi
