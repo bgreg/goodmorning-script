@@ -13,6 +13,9 @@
 ## Output format
 --format documentation
 
+## Exclude real API tests by default (run with: shellspec --tag real)
+--tag ~real
+
 ## Fail fast (stop on first failure)
 # --fail-fast
 
