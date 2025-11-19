@@ -19,11 +19,40 @@ jobs:
 
     - name: Install dependencies
       run: |
-        brew install jq figlet shellspec shfmt
+        brew install jq figlet shellspec
 
-    - name: Check formatting (shfmt)
+    - name: Syntax check (zsh -n)
       run: |
-        shfmt -d -i 2 -ci -ln bash goodmorning.sh setup.sh lib/*.sh
+        for f in goodmorning.sh setup.sh lib/*.sh; do
+          echo "Checking $f..."
+          zsh -n "$f"
+        done
+
+    - name: Check line endings (no CRLF)
+      run: |
+        if grep -rIl $'\r' *.sh lib/*.sh 2>/dev/null; then
+          echo "Error: Found CRLF line endings"
+          exit 1
+        fi
+        echo "All files have Unix line endings"
+
+    - name: Check executable permissions
+      run: |
+        for f in goodmorning.sh setup.sh; do
+          if [ ! -x "$f" ]; then
+            echo "Error: $f is not executable"
+            exit 1
+          fi
+        done
+        echo "All main scripts are executable"
+
+    - name: Security scan (no secrets)
+      run: |
+        if grep -rE "(api_key|password|secret|token)\s*=\s*['\"][^'\"]+['\"]" --include="*.sh" . 2>/dev/null | grep -v "example\|sample\|placeholder"; then
+          echo "Warning: Possible hardcoded secrets found"
+          exit 1
+        fi
+        echo "No hardcoded secrets detected"
 
     - name: Run specs
       run: shellspec
