@@ -108,10 +108,10 @@ jobs:
           FOUND=1
         fi
 
-        # Email addresses (except placeholder/example)
-        if grep -rE "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}" --include="*.sh" . 2>/dev/null | grep -vE "example|placeholder|noreply"; then
+        # Email addresses (except placeholder/example/test)
+        if grep -rE "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}" --include="*.sh" . 2>/dev/null | grep -vE "example|placeholder|noreply|test\.com|spec/"; then
           echo "Warning: Found email addresses"
-          grep -rE "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}" --include="*.sh" . | grep -vE "example|placeholder|noreply"
+          grep -rE "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}" --include="*.sh" . | grep -vE "example|placeholder|noreply|test\.com|spec/"
           FOUND=1
         fi
 
