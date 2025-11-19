@@ -177,8 +177,14 @@ fetch_with_spinner() {
   shift
   local -a command=("$@")
 
-  # Show spinner on stderr so stdout can be captured
-  echo -n "  $message " >&2
+  # Write spinner directly to terminal to avoid tee interference
+  # Try /dev/tty first, fall back to stderr if unavailable
+  local tty_out="/dev/stderr"
+  if [[ -c /dev/tty ]] && ( echo -n "" > /dev/tty ) 2>/dev/null; then
+    tty_out="/dev/tty"
+  fi
+
+  echo -n "  $message " > "$tty_out" 2>/dev/null
 
   local spinstr='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
   local timeout=${SPINNER_TIMEOUT:-30}
@@ -187,32 +193,30 @@ fetch_with_spinner() {
   # Run command and capture output
   "${command[@]}" > "$temp_file" 2>/dev/null &
   local pid=$!
-  local elapsed=0
-  local delay=0.1
+  local iterations=0
+  local max_iterations=$((timeout * 10))  # 10 iterations per second (0.1s delay)
 
   while kill -0 "$pid" 2>/dev/null; do
-    if (( elapsed >= timeout )); then
-      printf "\r  %-50s" "" >&2
-      printf "\r" >&2
+    if (( iterations >= max_iterations )); then
+      printf "\r  %-60s\r" "" > "$tty_out" 2>/dev/null
       kill "$pid" 2>/dev/null
       rm -f "$temp_file"
       return 1
     fi
 
     local temp=${spinstr#?}
-    printf "[%c]" "$spinstr" >&2
+    printf "[%c]" "$spinstr" > "$tty_out" 2>/dev/null
     spinstr=$temp${spinstr%"$temp"}
-    sleep "$delay"
-    printf "\b\b\b" >&2
-    elapsed=$((elapsed + delay))
+    sleep 0.1
+    printf "\b\b\b" > "$tty_out" 2>/dev/null
+    iterations=$((iterations + 1))
   done
 
   wait "$pid"
   local exit_code=$?
 
   # Clear the spinner line
-  printf "\r  %-50s" "" >&2
-  printf "\r" >&2
+  printf "\r  %-60s\r" "" > "$tty_out" 2>/dev/null
 
   if [[ $exit_code -eq 0 ]]; then
     cat "$temp_file"
