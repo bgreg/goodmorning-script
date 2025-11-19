@@ -17,30 +17,9 @@ jobs:
     - name: Check zsh version
       run: zsh --version
 
-    - name: Install optional dependencies
+    - name: Install dependencies
       run: |
-        brew install jq figlet
+        brew install jq figlet shellspec
 
-    - name: Run syntax validation tests
-      run: ./tests/test-phase1-syntax.sh
-
-    - name: Run security tests
-      run: ./tests/test-phase2-security.sh
-
-    - name: Run resource management tests
-      run: ./tests/test-phase3-resources.sh
-
-    - name: Run integration tests
-      run: ./tests/test-phase4-integration.sh
-
-    - name: Run functional tests
-      run: ./tests/test-phase5-functional.sh
-
-    - name: Run error handling tests
-      run: ./tests/test-phase6-errorhandling.sh
-
-    - name: Run regression tests
-      run: ./tests/test-phase7-regression.sh
-
-    - name: Run all tests
-      run: ./tests/run-all-tests.sh
+    - name: Run specs
+      run: shellspec
