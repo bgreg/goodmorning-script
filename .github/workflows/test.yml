@@ -54,5 +54,71 @@ jobs:
         fi
         echo "No hardcoded secrets detected"
 
+    - name: Check for unwanted files
+      run: |
+        FOUND=0
+
+        # Log files
+        if find . -name "*.log" -not -path "./.git/*" | grep -q .; then
+          echo "Error: Found .log files"
+          find . -name "*.log" -not -path "./.git/*"
+          FOUND=1
+        fi
+
+        # macOS metadata
+        if find . -name ".DS_Store" -not -path "./.git/*" | grep -q .; then
+          echo "Error: Found .DS_Store files"
+          find . -name ".DS_Store" -not -path "./.git/*"
+          FOUND=1
+        fi
+
+        # Backup files
+        if find . \( -name "*.bak" -o -name "*~" -o -name "*.swp" -o -name "*.swo" \) -not -path "./.git/*" | grep -q .; then
+          echo "Error: Found backup/swap files"
+          find . \( -name "*.bak" -o -name "*~" -o -name "*.swp" -o -name "*.swo" \) -not -path "./.git/*"
+          FOUND=1
+        fi
+
+        # Private keys
+        if find . \( -name "*.pem" -o -name "*.key" -o -name "id_rsa*" -o -name "id_ed25519*" \) -not -path "./.git/*" | grep -q .; then
+          echo "Error: Found private key files"
+          find . \( -name "*.pem" -o -name "*.key" -o -name "id_rsa*" -o -name "id_ed25519*" \) -not -path "./.git/*"
+          FOUND=1
+        fi
+
+        # Environment files with secrets
+        if [ -f ".env" ] && grep -qE "^[A-Z_]+=['\"]?[^$]" .env 2>/dev/null; then
+          echo "Error: Found .env with hardcoded values"
+          FOUND=1
+        fi
+
+        if [ $FOUND -eq 1 ]; then
+          exit 1
+        fi
+        echo "No unwanted files found"
+
+    - name: Check for personal info leaks
+      run: |
+        FOUND=0
+
+        # Hardcoded home paths with usernames (but allow $HOME and ~)
+        if grep -rE "/Users/[a-zA-Z0-9_]+/|/home/[a-zA-Z0-9_]+/" --include="*.sh" . 2>/dev/null | grep -v "runner"; then
+          echo "Warning: Found hardcoded user home paths"
+          grep -rE "/Users/[a-zA-Z0-9_]+/|/home/[a-zA-Z0-9_]+/" --include="*.sh" . | grep -v "runner"
+          FOUND=1
+        fi
+
+        # Email addresses (except placeholder/example)
+        if grep -rE "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}" --include="*.sh" . 2>/dev/null | grep -vE "example|placeholder|noreply"; then
+          echo "Warning: Found email addresses"
+          grep -rE "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}" --include="*.sh" . | grep -vE "example|placeholder|noreply"
+          FOUND=1
+        fi
+
+        if [ $FOUND -eq 1 ]; then
+          exit 1
+        fi
+        echo "No personal info leaks detected"
+
     - name: Run specs
       run: shellspec
