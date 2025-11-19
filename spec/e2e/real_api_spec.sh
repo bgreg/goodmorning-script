@@ -2,10 +2,11 @@
 #shellspec shell=zsh
 
 # End-to-End Real API Tests
-# Run with: shellspec --tag real
+# Run with: SHELLSPEC_REAL=1 shellspec
 # These tests hit real APIs and require internet connectivity
 
-Describe 'E2E Real API Tests' real
+Describe 'E2E Real API Tests'
+  Skip if 'SHELLSPEC_REAL not set' [ -z "${SHELLSPEC_REAL:-}" ]
   setup() {
     PROJECT_ROOT="${SHELLSPEC_PROJECT_ROOT:-$(pwd)}"
     CACHE_DIR="$PROJECT_ROOT/cache"

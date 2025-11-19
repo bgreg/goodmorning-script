@@ -13,8 +13,7 @@
 ## Output format
 --format documentation
 
-## Exclude real API tests by default (run with: shellspec --tag real)
---tag ~real
+## E2E tests require SHELLSPEC_REAL=1 (run with: SHELLSPEC_REAL=1 shellspec)
 
 ## Fail fast (stop on first failure)
 # --fail-fast
