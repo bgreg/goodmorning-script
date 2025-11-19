@@ -102,6 +102,8 @@ fi
 # User configuration (override via GOODMORNING_* environment variables)
 # Default to script directory for immediate use, override with setup or environment
 CONFIG_DIR="${GOODMORNING_CONFIG_DIR:-$SCRIPT_DIR}"
+# Export for lib files that use GOODMORNING_CONFIG_DIR directly
+export GOODMORNING_CONFIG_DIR="$CONFIG_DIR"
 USER_NAME="${GOODMORNING_USER_NAME:-${USER}}"
 
 # Optional scripts (defaults point to example templates - copy and customize these)

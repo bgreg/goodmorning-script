@@ -13,6 +13,21 @@
 ###############################################################################
 
 ###############################################################################
+# Helper Functions
+###############################################################################
+
+_safe_display() {
+  local value="$1"
+  local fallback="${2:-N/A}"
+
+  if [ -z "$value" ] || [ "$value" = "null" ]; then
+    echo "$fallback"
+  else
+    echo "$value"
+  fi
+}
+
+###############################################################################
 # Country of the Day
 ###############################################################################
 
@@ -28,24 +43,39 @@ _get_random_country() {
     return 0
   fi
 
-  local all_countries=$(curl -s "https://restcountries.com/v3.1/all" 2>/dev/null)
+  # List of country codes for random selection (avoids /all endpoint issues)
+  local country_codes=(
+    "usa" "canada" "mexico" "brazil" "argentina" "chile" "peru" "colombia"
+    "uk" "france" "germany" "spain" "italy" "netherlands" "belgium" "sweden"
+    "norway" "denmark" "finland" "poland" "austria" "switzerland" "portugal"
+    "japan" "china" "india" "australia" "newzealand" "southkorea" "thailand"
+    "vietnam" "indonesia" "malaysia" "singapore" "philippines" "egypt" "morocco"
+    "southafrica" "kenya" "nigeria" "ghana" "israel" "turkey" "greece" "ireland"
+  )
 
-  if [ -z "$all_countries" ]; then
+  # Use day of year for daily rotation
+  local day_of_year=$(date +%j | sed 's/^0*//')
+  local index=$((day_of_year % ${#country_codes[@]}))
+  local country_name="${country_codes[$index]}"
+
+  local country_data=$(curl -s --max-time 10 "https://restcountries.com/v3.1/name/${country_name}?fullText=false" 2>/dev/null)
+
+  if [ -z "$country_data" ]; then
     return 1
   fi
 
-  local total_countries=$(echo "$all_countries" | grep -o '"name"' | wc -l)
-  local random_index=$((RANDOM % total_countries))
+  # Extract first result from array and validate
+  local single_country=$(printf '%s' "$country_data" | jq '.[0]' 2>/dev/null)
+  local country_name_check=$(printf '%s' "$country_data" | jq -r '.[0].name.common // empty' 2>/dev/null)
 
-  local country_data=$(echo "$all_countries" | jq ".[$random_index]" 2>/dev/null)
-
-  if [ -n "$country_data" ]; then
+  if [ -n "$country_name_check" ]; then
     mkdir -p "$(dirname "$cache_file")"
-    echo "$country_data" > "$cache_file"
-    echo "$country_data"
+    print -r -- "$single_country" > "$cache_file"
+    print -r -- "$single_country"
     return 0
   fi
 
+  echo "Country API: Invalid response for $country_name" >&2
   return 1
 }
 
@@ -63,17 +93,17 @@ show_country_of_day() {
     return 0
   fi
 
-  local name=$(echo "$country_data" | jq -r '.name.common' 2>/dev/null)
-  local official_name=$(echo "$country_data" | jq -r '.name.official' 2>/dev/null)
-  local capital=$(echo "$country_data" | jq -r '.capital[0]? // "N/A"' 2>/dev/null)
-  local region=$(echo "$country_data" | jq -r '.region' 2>/dev/null)
-  local subregion=$(echo "$country_data" | jq -r '.subregion // "N/A"' 2>/dev/null)
-  local population=$(echo "$country_data" | jq -r '.population' 2>/dev/null)
-  local area=$(echo "$country_data" | jq -r '.area' 2>/dev/null)
-  local flag=$(echo "$country_data" | jq -r '.flag' 2>/dev/null)
+  local name=$(printf '%s' "$country_data" | jq -r '.name.common' 2>/dev/null)
+  local official_name=$(printf '%s' "$country_data" | jq -r '.name.official' 2>/dev/null)
+  local capital=$(printf '%s' "$country_data" | jq -r '.capital[0]? // "N/A"' 2>/dev/null)
+  local region=$(printf '%s' "$country_data" | jq -r '.region' 2>/dev/null)
+  local subregion=$(printf '%s' "$country_data" | jq -r '.subregion // "N/A"' 2>/dev/null)
+  local population=$(printf '%s' "$country_data" | jq -r '.population' 2>/dev/null)
+  local area=$(printf '%s' "$country_data" | jq -r '.area' 2>/dev/null)
+  local flag=$(printf '%s' "$country_data" | jq -r '.flag' 2>/dev/null)
 
-  local languages=$(echo "$country_data" | jq -r '.languages // {} | to_entries | .[].value' 2>/dev/null | tr '\n' ', ' | sed 's/,$//')
-  local currencies=$(echo "$country_data" | jq -r '.currencies // {} | to_entries | .[].value.name' 2>/dev/null | tr '\n' ', ' | sed 's/,$//')
+  local languages=$(printf '%s' "$country_data" | jq -r '.languages // {} | to_entries | .[].value' 2>/dev/null | tr '\n' ', ' | sed 's/,$//')
+  local currencies=$(printf '%s' "$country_data" | jq -r '.currencies // {} | to_entries | .[].value.name' 2>/dev/null | tr '\n' ', ' | sed 's/,$//')
 
   echo ""
   echo_cyan "  $flag  $name"
@@ -98,11 +128,27 @@ show_country_of_day() {
 }
 
 ###############################################################################
-# Word of the Day (Merriam-Webster)
+# Word of the Day (Free Dictionary API)
 ###############################################################################
 
 _get_word_cache_file() {
   echo "${GOODMORNING_CONFIG_DIR}/cache/word_of_day.json"
+}
+
+_get_random_word() {
+  # Common interesting words to feature
+  local words=(
+    "ephemeral" "ubiquitous" "serendipity" "eloquent" "resilient"
+    "pragmatic" "meticulous" "tenacious" "juxtaposition" "paradigm"
+    "quintessential" "esoteric" "cogent" "pernicious" "sagacious"
+    "mellifluous" "ineffable" "sanguine" "perspicacious" "laconic"
+    "munificent" "pulchritudinous" "defenestrate" "petrichor" "apricity"
+    "susurrus" "vellichor" "sonder" "numinous" "halcyon"
+  )
+  # Use day of year for daily rotation
+  local day_of_year=$(date +%j | sed 's/^0*//')
+  local index=$((day_of_year % ${#words[@]}))
+  echo "${words[$index]}"
 }
 
 _fetch_word_of_day() {
@@ -113,18 +159,30 @@ _fetch_word_of_day() {
     return 0
   fi
 
-  local word_data=$(curl -s "https://www.merriam-webster.com/word-of-the-day" 2>/dev/null)
+  local word=$(_get_random_word)
+  local word_data=$(curl -s "https://api.dictionaryapi.dev/api/v2/entries/en/$word" 2>/dev/null)
 
   if [ -z "$word_data" ]; then
     return 1
   fi
 
-  local word=$(echo "$word_data" | grep -o '<h1[^>]*>[^<]*</h1>' | sed 's/<[^>]*>//g' | head -1)
-  local definition=$(echo "$word_data" | grep -o '<div class="wod-definition-container"[^>]*>.*</div>' | sed 's/<[^>]*>//g' | head -1)
+  # Extract first definition from response
+  local fetched_word=$(printf '%s' "$word_data" | jq -r '.[0].word' 2>/dev/null)
+  local phonetic=$(printf '%s' "$word_data" | jq -r '.[0].phonetic // .[0].phonetics[0].text // ""' 2>/dev/null)
+  local part_of_speech=$(printf '%s' "$word_data" | jq -r '.[0].meanings[0].partOfSpeech' 2>/dev/null)
+  local definition=$(printf '%s' "$word_data" | jq -r '.[0].meanings[0].definitions[0].definition' 2>/dev/null)
+  local example=$(printf '%s' "$word_data" | jq -r '.[0].meanings[0].definitions[0].example // ""' 2>/dev/null)
 
-  if [ -n "$word" ]; then
+  if [ -n "$fetched_word" ] && [ "$fetched_word" != "null" ]; then
     mkdir -p "$(dirname "$cache_file")"
-    echo "{\"word\":\"$word\",\"definition\":\"$definition\"}" > "$cache_file"
+    # Create clean JSON with jq to handle escaping
+    jq -n \
+      --arg word "$fetched_word" \
+      --arg phonetic "$phonetic" \
+      --arg pos "$part_of_speech" \
+      --arg def "$definition" \
+      --arg ex "$example" \
+      '{word: $word, phonetic: $phonetic, partOfSpeech: $pos, definition: $def, example: $ex}' > "$cache_file"
     cat "$cache_file"
     return 0
   fi
@@ -146,13 +204,41 @@ show_word_of_day() {
     return 0
   fi
 
-  local word=$(echo "$word_data" | jq -r '.word' 2>/dev/null)
-  local definition=$(echo "$word_data" | jq -r '.definition' 2>/dev/null)
+  local word=$(printf '%s' "$word_data" | jq -r '.word' 2>/dev/null)
+  local phonetic=$(printf '%s' "$word_data" | jq -r '.phonetic' 2>/dev/null)
+  local part_of_speech=$(printf '%s' "$word_data" | jq -r '.partOfSpeech' 2>/dev/null)
+  local definition=$(printf '%s' "$word_data" | jq -r '.definition' 2>/dev/null)
+  local example=$(printf '%s' "$word_data" | jq -r '.example' 2>/dev/null)
+
+  # Validate we have content
+  word=$(_safe_display "$word" "")
+  definition=$(_safe_display "$definition" "")
+
+  if [ -z "$word" ] || [ -z "$definition" ]; then
+    show_setup_message "$(echo_yellow '  ⚠ Word data unavailable')"
+    return 0
+  fi
 
   echo ""
-  echo_cyan "  📖 $(echo_green "$word")"
+  phonetic=$(_safe_display "$phonetic" "")
+  if [ -n "$phonetic" ]; then
+    echo_cyan "  📖 $(echo_green "$word") $(echo_gray "$phonetic")"
+  else
+    echo_cyan "  📖 $(echo_green "$word")"
+  fi
+
+  part_of_speech=$(_safe_display "$part_of_speech" "")
+  if [ -n "$part_of_speech" ]; then
+    echo_gray "     $part_of_speech"
+  fi
   echo ""
   echo "  $definition" | fold -s -w 70 | sed 's/^/  /'
+
+  example=$(_safe_display "$example" "")
+  if [ -n "$example" ]; then
+    echo ""
+    echo_gray "  Example: \"$example\""
+  fi
   echo ""
 }
 
@@ -174,15 +260,19 @@ _fetch_wikipedia_featured() {
 
   local today=$(date +"%Y/%m/%d")
   local wiki_url="https://en.wikipedia.org/api/rest_v1/feed/featured/${today}"
-  local article_data=$(curl -s "$wiki_url" 2>/dev/null)
+  local article_data=$(curl -s -H "Api-User-Agent: GoodmorningScript/1.0 (personal productivity tool)" "$wiki_url" 2>/dev/null)
 
   if [ -z "$article_data" ]; then
     return 1
   fi
 
+  # Sanitize control characters that break jq parsing (macOS compatible)
+  # Use perl for portable handling of control character removal
+  local sanitized_data=$(printf '%s' "$article_data" | perl -pe 's/[\x00-\x08\x0b\x0c\x0e-\x1f]//g' 2>/dev/null)
+
   mkdir -p "$(dirname "$cache_file")"
-  echo "$article_data" > "$cache_file"
-  echo "$article_data"
+  print -r -- "$sanitized_data" > "$cache_file"
+  print -r -- "$sanitized_data"
   return 0
 }
 
@@ -200,17 +290,33 @@ show_wikipedia_featured() {
     return 0
   fi
 
-  local title=$(echo "$article_data" | jq -r '.tfa.title' 2>/dev/null)
-  local extract=$(echo "$article_data" | jq -r '.tfa.extract' 2>/dev/null)
-  local url=$(echo "$article_data" | jq -r '.tfa.content_urls.desktop.page' 2>/dev/null)
+  local title=$(printf '%s' "$article_data" | jq -r '.tfa.title' 2>/dev/null)
+  local extract=$(printf '%s' "$article_data" | jq -r '.tfa.extract' 2>/dev/null)
+  local url=$(printf '%s' "$article_data" | jq -r '.tfa.content_urls.desktop.page' 2>/dev/null)
+
+  # Check if we got valid data
+  title=$(_safe_display "$title" "")
+  extract=$(_safe_display "$extract" "")
+  url=$(_safe_display "$url" "")
+
+  if [ -z "$title" ] && [ -z "$extract" ]; then
+    show_setup_message "$(echo_yellow '  ⚠ Wikipedia article data unavailable')"
+    return 0
+  fi
 
   echo ""
-  echo_cyan "  📰 $(echo_green "$title")"
-  echo ""
-  echo "$extract" | fold -s -w 70 | sed 's/^/  /'
-  echo ""
-  echo_cyan "  🔗 $url"
-  echo ""
+  if [ -n "$title" ]; then
+    echo_cyan "  📰 $(echo_green "$title")"
+    echo ""
+  fi
+  if [ -n "$extract" ]; then
+    echo "$extract" | fold -s -w 70 | sed 's/^/  /'
+    echo ""
+  fi
+  if [ -n "$url" ]; then
+    echo_cyan "  🔗 $url"
+    echo ""
+  fi
 }
 
 ###############################################################################
@@ -242,8 +348,8 @@ _fetch_apod() {
   fi
 
   mkdir -p "$(dirname "$cache_file")"
-  echo "$apod_data" > "$cache_file"
-  echo "$apod_data"
+  print -r -- "$apod_data" > "$cache_file"
+  print -r -- "$apod_data"
   return 0
 }
 
@@ -278,10 +384,10 @@ show_apod() {
     return 0
   fi
 
-  local title=$(echo "$apod_data" | jq -r '.title' 2>/dev/null)
-  local explanation=$(echo "$apod_data" | jq -r '.explanation' 2>/dev/null)
-  local url=$(echo "$apod_data" | jq -r '.url' 2>/dev/null)
-  local media_type=$(echo "$apod_data" | jq -r '.media_type' 2>/dev/null)
+  local title=$(printf '%s' "$apod_data" | jq -r '.title' 2>/dev/null)
+  local explanation=$(printf '%s' "$apod_data" | jq -r '.explanation' 2>/dev/null)
+  local url=$(printf '%s' "$apod_data" | jq -r '.url' 2>/dev/null)
+  local media_type=$(printf '%s' "$apod_data" | jq -r '.media_type' 2>/dev/null)
   local image_file="$(_get_apod_image_file)"
 
   echo ""
@@ -303,6 +409,7 @@ show_apod() {
 
   echo "$explanation" | fold -s -w 70 | sed 's/^/  /'
   echo ""
-  echo_cyan "  🔗 $url"
+  local display_url=$(_safe_display "$url" "No URL available")
+  echo_cyan "  🔗 $display_url"
   echo ""
 }

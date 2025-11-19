@@ -12,6 +12,9 @@ on run argv
 			set end of emailList to emailInfo
 		end repeat
 
-		return emailList as text
+		set AppleScript's text item delimiters to linefeed
+		set emailText to emailList as text
+		set AppleScript's text item delimiters to ""
+		return emailText
 	end tell
 end run
