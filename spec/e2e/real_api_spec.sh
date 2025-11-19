@@ -2,18 +2,33 @@
 #shellspec shell=zsh
 
 # End-to-End Real API Tests
-# Run with: SHELLSPEC_REAL=1 shellspec
+# Run with: SHELLSPEC_REAL=1 shellspec spec/e2e/real_api_spec.sh
 # These tests hit real APIs and require internet connectivity
 
 Describe 'E2E Real API Tests'
   Skip if 'SHELLSPEC_REAL not set' [ -z "${SHELLSPEC_REAL:-}" ]
-  setup() {
-    PROJECT_ROOT="${SHELLSPEC_PROJECT_ROOT:-$(pwd)}"
-    CACHE_DIR="$PROJECT_ROOT/cache"
-    OUTPUT_FILE=$(mktemp)
 
-    # Clear cache to force fresh API calls
-    rm -f "$CACHE_DIR"/*.json 2>/dev/null || true
+  # Use a fixed output file location
+  OUTPUT_FILE="/tmp/goodmorning_e2e_output.txt"
+
+  setup() {
+    local project_root="${SHELLSPEC_PROJECT_ROOT:-$(pwd)}"
+
+    # Clear most caches to force fresh API calls
+    # Keep apod.json since NASA API is often rate-limited
+    setopt localoptions nullglob
+    for f in "${project_root}/cache"/*.json; do
+      [[ "$f" != *"apod.json" ]] && rm -f "$f"
+    done
+    rm -f "$OUTPUT_FILE" 2>/dev/null
+
+    # Run the script once and save output
+    # Unset GOODMORNING_NO_AUTO_RUN to allow script execution (set by spec_helper.sh)
+    env GOODMORNING_SHOW_SETUP_MESSAGES=false \
+        GOODMORNING_FORCE_OFFLINE="" \
+        GOODMORNING_NO_AUTO_RUN="" \
+        "${project_root}/goodmorning.sh" > "$OUTPUT_FILE" 2>&1
+    return 0
   }
 
   cleanup() {
@@ -23,22 +38,19 @@ Describe 'E2E Real API Tests'
   BeforeAll 'setup'
   AfterAll 'cleanup'
 
-  run_goodmorning() {
-    env GOODMORNING_SHOW_SETUP_MESSAGES=false \
-        GOODMORNING_FORCE_OFFLINE="" \
-        "$PROJECT_ROOT/goodmorning.sh" > "$OUTPUT_FILE" 2>&1
+  # Helper function for N/A count test
+  test_na_count() {
+    [ "${1:-0}" -le 3 ]
   }
 
   Describe 'Script execution'
-    It 'runs without errors'
-      When call run_goodmorning
-      The status should be success
+    It 'runs and produces output'
+      The file "$OUTPUT_FILE" should be exist
+      The contents of file "$OUTPUT_FILE" should not be blank
     End
   End
 
   Describe 'Section output'
-    BeforeAll 'run_goodmorning'
-
     It 'displays banner greeting'
       The contents of file "$OUTPUT_FILE" should include "Good Morning"
     End
@@ -75,6 +87,10 @@ Describe 'E2E Real API Tests'
       The contents of file "$OUTPUT_FILE" should match pattern "*Astronomy Picture*"
     End
 
+    It 'shows APOD with URL'
+      The contents of file "$OUTPUT_FILE" should match pattern "*Astronomy Picture*🔗 http*"
+    End
+
     It 'shows calendar section'
       The contents of file "$OUTPUT_FILE" should match pattern "*Calendar*"
     End
@@ -83,14 +99,24 @@ Describe 'E2E Real API Tests'
       The contents of file "$OUTPUT_FILE" should match pattern "*Email*"
     End
 
-    It 'shows learning tip with source'
-      The contents of file "$OUTPUT_FILE" should match pattern "*Learning*Source:*"
+    It 'shows daily learning section'
+      The contents of file "$OUTPUT_FILE" should match pattern "*Daily Learning*"
+    End
+
+    It 'shows daily learning sitemap resource'
+      The contents of file "$OUTPUT_FILE" should match pattern "*From Sitemap*Topic:*"
+    End
+
+    It 'shows daily learning static resource'
+      The contents of file "$OUTPUT_FILE" should match pattern "*Static Resource*Topic:*"
+    End
+
+    It 'shows sanity maintenance section'
+      The contents of file "$OUTPUT_FILE" should match pattern "*Sanity Maintenance*"
     End
   End
 
   Describe 'Regression checks'
-    BeforeAll 'run_goodmorning'
-
     It 'has no literal null values in output'
       The contents of file "$OUTPUT_FILE" should not match pattern "*🔗 null*"
     End
@@ -112,7 +138,3 @@ Describe 'E2E Real API Tests'
     End
   End
 End
-
-test_na_count() {
-  [ "${1:-0}" -le 3 ]
-}

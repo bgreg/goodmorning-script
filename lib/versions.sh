@@ -96,8 +96,6 @@ _fetch_python_version() {
 get_tech_versions() {
   local versions=()
 
-  echo_cyan "Fetching latest versions..."
-
   local ruby_version=$(_fetch_github_version "ruby/ruby" "$(_get_cache_file ruby)")
   [ -n "$ruby_version" ] && versions+=("Ruby|$ruby_version")
 
@@ -131,7 +129,7 @@ get_tech_versions() {
   local django_version=$(_fetch_github_version "django/django" "$(_get_cache_file django)")
   [ -n "$django_version" ] && versions+=("Django|$django_version")
 
-  echo "${versions[@]}"
+  printf '%s\n' "${versions[@]}"
 }
 
 show_tech_versions() {
@@ -141,7 +139,8 @@ show_tech_versions() {
 
   print_section "Latest Tech Versions" "cyan"
 
-  local versions=($(get_tech_versions))
+  local versions_output=$(fetch_with_spinner "Fetching versions..." get_tech_versions)
+  local versions=(${(f)versions_output})
 
   if [ ${#versions[@]} -eq 0 ]; then
     show_setup_message "$(echo_yellow '  ⚠ Could not fetch version information')"

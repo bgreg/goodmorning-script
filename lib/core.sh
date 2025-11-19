@@ -129,14 +129,14 @@ _safe_source() {
 run_with_spinner() {
   local message="$1"
   shift
-  local command="$@"
+  local -a command=("$@")
 
   echo -n "  $message... "
 
   local spinstr='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
   local timeout=${SPINNER_TIMEOUT:-30}
 
-  eval "$command" &
+  "${command[@]}" &
   local pid=$!
   local elapsed=0
   local delay=0.1
@@ -152,15 +152,15 @@ run_with_spinner() {
     local temp=${spinstr#?}
     printf "[%c]" "$spinstr"
     spinstr=$temp${spinstr%"$temp"}
-    sleep $delay
+    sleep "$delay"
     printf "\b\b\b"
-    elapsed=$(awk "BEGIN {print $elapsed + $delay}")
+    elapsed=$((elapsed + delay))
   done
 
-  wait $pid
+  wait "$pid"
   local exit_code=$?
 
-  if [ $exit_code -eq 0 ]; then
+  if [[ $exit_code -eq 0 ]]; then
     echo_green "✓"
   else
     echo_red "✗"
@@ -168,4 +168,56 @@ run_with_spinner() {
   fi
 
   return 0
+}
+
+# Fetch data with spinner, capturing output to a variable
+# Usage: local result=$(fetch_with_spinner "Loading..." command args)
+fetch_with_spinner() {
+  local message="$1"
+  shift
+  local -a command=("$@")
+
+  # Show spinner on stderr so stdout can be captured
+  echo -n "  $message " >&2
+
+  local spinstr='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
+  local timeout=${SPINNER_TIMEOUT:-30}
+  local temp_file=$(mktemp)
+
+  # Run command and capture output
+  "${command[@]}" > "$temp_file" 2>/dev/null &
+  local pid=$!
+  local elapsed=0
+  local delay=0.1
+
+  while kill -0 "$pid" 2>/dev/null; do
+    if (( elapsed >= timeout )); then
+      printf "\r  %-50s" "" >&2
+      printf "\r" >&2
+      kill "$pid" 2>/dev/null
+      rm -f "$temp_file"
+      return 1
+    fi
+
+    local temp=${spinstr#?}
+    printf "[%c]" "$spinstr" >&2
+    spinstr=$temp${spinstr%"$temp"}
+    sleep "$delay"
+    printf "\b\b\b" >&2
+    elapsed=$((elapsed + delay))
+  done
+
+  wait "$pid"
+  local exit_code=$?
+
+  # Clear the spinner line
+  printf "\r  %-50s" "" >&2
+  printf "\r" >&2
+
+  if [[ $exit_code -eq 0 ]]; then
+    cat "$temp_file"
+  fi
+
+  rm -f "$temp_file"
+  return $exit_code
 }

@@ -86,7 +86,7 @@ show_country_of_day() {
 
   print_section "Country of the Day" "cyan"
 
-  local country_data=$(_get_random_country)
+  local country_data=$(fetch_with_spinner "Fetching country..." _get_random_country)
 
   if [ -z "$country_data" ]; then
     show_setup_message "$(echo_yellow '  ⚠ Could not fetch country information')"
@@ -197,7 +197,7 @@ show_word_of_day() {
 
   print_section "Word of the Day" "cyan"
 
-  local word_data=$(_fetch_word_of_day)
+  local word_data=$(fetch_with_spinner "Fetching word..." _fetch_word_of_day)
 
   if [ -z "$word_data" ]; then
     show_setup_message "$(echo_yellow '  ⚠ Could not fetch word of the day')"
@@ -283,7 +283,7 @@ show_wikipedia_featured() {
 
   print_section "Wikipedia Featured Article" "cyan"
 
-  local article_data=$(_fetch_wikipedia_featured)
+  local article_data=$(fetch_with_spinner "Fetching article..." _fetch_wikipedia_featured)
 
   if [ -z "$article_data" ]; then
     show_setup_message "$(echo_yellow '  ⚠ Could not fetch Wikipedia featured article')"
@@ -347,6 +347,18 @@ _fetch_apod() {
     return 1
   fi
 
+  # Check for API errors before caching
+  local has_error=$(printf '%s' "$apod_data" | jq -r '.error // empty' 2>/dev/null)
+  if [ -n "$has_error" ]; then
+    return 1
+  fi
+
+  # Validate we have required fields
+  local title=$(printf '%s' "$apod_data" | jq -r '.title // empty' 2>/dev/null)
+  if [ -z "$title" ]; then
+    return 1
+  fi
+
   mkdir -p "$(dirname "$cache_file")"
   print -r -- "$apod_data" > "$cache_file"
   print -r -- "$apod_data"
@@ -376,7 +388,7 @@ show_apod() {
 
   print_section "Astronomy Picture of the Day" "cyan"
 
-  local apod_data=$(_fetch_apod)
+  local apod_data=$(fetch_with_spinner "Fetching APOD..." _fetch_apod)
 
   if [ -z "$apod_data" ]; then
     show_setup_message "$(echo_yellow '  ⚠ Could not fetch APOD')"
@@ -387,6 +399,7 @@ show_apod() {
   local title=$(printf '%s' "$apod_data" | jq -r '.title' 2>/dev/null)
   local explanation=$(printf '%s' "$apod_data" | jq -r '.explanation' 2>/dev/null)
   local url=$(printf '%s' "$apod_data" | jq -r '.url' 2>/dev/null)
+  local apod_date=$(printf '%s' "$apod_data" | jq -r '.date' 2>/dev/null)
   local media_type=$(printf '%s' "$apod_data" | jq -r '.media_type' 2>/dev/null)
   local image_file="$(_get_apod_image_file)"
 
@@ -409,7 +422,19 @@ show_apod() {
 
   echo "$explanation" | fold -s -w 70 | sed 's/^/  /'
   echo ""
-  local display_url=$(_safe_display "$url" "No URL available")
+
+  # Use media URL if available, otherwise construct APOD page URL from date
+  local display_url=""
+  if [ -n "$url" ] && [ "$url" != "null" ]; then
+    display_url="$url"
+  elif [ -n "$apod_date" ] && [ "$apod_date" != "null" ]; then
+    # Construct APOD page URL: https://apod.nasa.gov/apod/apYYMMDD.html
+    local formatted_date=$(echo "$apod_date" | sed 's/-//g' | cut -c3-)
+    display_url="https://apod.nasa.gov/apod/ap${formatted_date}.html"
+  else
+    display_url="https://apod.nasa.gov/apod/astropix.html"
+  fi
+
   echo_cyan "  🔗 $display_url"
   echo ""
 }

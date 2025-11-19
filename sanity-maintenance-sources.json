@@ -1,0 +1,111 @@
+{
+  "sitemaps": [],
+  "categories": {
+    "comics": [
+      {
+        "title": "Random XKCD",
+        "url": "xkcd:random"
+      },
+      {
+        "title": "Random SMBC Comic",
+        "url": "https://www.smbc-comics.com/comic/random"
+      },
+      {
+        "title": "Random CommitStrip",
+        "url": "https://www.commitstrip.com/?random=1"
+      }
+    ],
+    "games": [
+      {
+        "title": "2048",
+        "url": "https://play2048.co/"
+      },
+      {
+        "title": "Wordle",
+        "url": "https://www.nytimes.com/games/wordle/index.html"
+      },
+      {
+        "title": "Chess.com",
+        "url": "https://www.chess.com/play/online"
+      },
+      {
+        "title": "Sudoku",
+        "url": "https://sudoku.com/"
+      },
+      {
+        "title": "Tetris",
+        "url": "https://tetris.com/play-tetris"
+      },
+      {
+        "title": "Slither.io",
+        "url": "https://slither.io/"
+      },
+      {
+        "title": "Agar.io",
+        "url": "https://agar.io/"
+      }
+    ],
+    "satire": [
+      {
+        "title": "The Onion - Tech",
+        "url": "https://www.theonion.com/tech"
+      },
+      {
+        "title": "The Onion - News",
+        "url": "https://www.theonion.com/news"
+      },
+      {
+        "title": "The Onion - Entertainment",
+        "url": "https://www.theonion.com/entertainment"
+      },
+      {
+        "title": "The Onion - Sports",
+        "url": "https://www.theonion.com/sports"
+      },
+      {
+        "title": "The Onion - Opinion",
+        "url": "https://www.theonion.com/opinion"
+      },
+      {
+        "title": "The Daily WTF",
+        "url": "https://thedailywtf.com/"
+      }
+    ],
+    "forums": [
+      {
+        "title": "Hacker News",
+        "url": "https://news.ycombinator.com/"
+      },
+      {
+        "title": "Reddit Programming",
+        "url": "https://www.reddit.com/r/programming/"
+      },
+      {
+        "title": "Reddit ProgrammerHumor",
+        "url": "https://www.reddit.com/r/ProgrammerHumor/"
+      }
+    ],
+    "random": [
+      {
+        "title": "Is California On Fire?",
+        "url": "https://iscaliforniaonfire.com/"
+      },
+      {
+        "title": "Is It Friday Yet?",
+        "url": "https://isitfridayyet.net/"
+      },
+      {
+        "title": "Does the Dog Die?",
+        "url": "https://www.doesthedogdie.com/"
+      },
+      {
+        "title": "The Useless Web",
+        "url": "https://theuselessweb.com/"
+      },
+      {
+        "title": "Random Street View",
+        "url": "https://randomstreetview.com/"
+      }
+    ]
+  }
+}

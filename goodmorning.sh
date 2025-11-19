@@ -18,13 +18,13 @@ if [[ -n "$GOODMORNING_SCRIPT_DIR" ]]; then
 # Priority 2: Zsh-specific method (most reliable when sourced in zsh)
 # ${(%):-%x} expands to the path of the sourced/executed script file
 else
-  local ZSH_SCRIPT_PATH="${(%):-%x}"
+  ZSH_SCRIPT_PATH="${(%):-%x}"
 
   # Validate zsh script path (filter out edge cases)
   if [[ -n "$ZSH_SCRIPT_PATH" && "$ZSH_SCRIPT_PATH" != "/dev/fd/"* && "$ZSH_SCRIPT_PATH" != "zsh" && "$ZSH_SCRIPT_PATH" != "bash" ]]; then
     # Resolve symlinks to get the real script location
     if [[ -L "$ZSH_SCRIPT_PATH" ]]; then
-      local REAL_PATH="$(readlink "$ZSH_SCRIPT_PATH")"
+      REAL_PATH="$(readlink "$ZSH_SCRIPT_PATH")"
       SCRIPT_DIR="$(cd "$(dirname "$REAL_PATH")" && pwd)"
     else
       SCRIPT_DIR="$(cd "$(dirname "$ZSH_SCRIPT_PATH")" && pwd)"
@@ -35,7 +35,7 @@ else
   elif [[ -n "${BASH_SOURCE[0]}" ]]; then
     # Resolve symlinks to get the real script location
     if [[ -L "${BASH_SOURCE[0]}" ]]; then
-      local REAL_PATH="$(readlink "${BASH_SOURCE[0]}")"
+      REAL_PATH="$(readlink "${BASH_SOURCE[0]}")"
       SCRIPT_DIR="$(cd "$(dirname "$REAL_PATH")" && pwd)"
     else
       SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -85,6 +85,10 @@ if [ -f "$SCRIPT_DIR/lib/daily_content.sh" ]; then
   source "$SCRIPT_DIR/lib/daily_content.sh"
 fi
 
+if [ -f "$SCRIPT_DIR/lib/sanity_maintenance.sh" ]; then
+  source "$SCRIPT_DIR/lib/sanity_maintenance.sh"
+fi
+
 # ZSH default pattern, assigns the left side of := only if not already set
 : ${MAX_REMINDERS:="${GOODMORNING_MAX_REMINDERS:-10}"}
 : ${MAX_EMAILS:="${GOODMORNING_MAX_EMAILS:-5}"}
@@ -111,8 +115,33 @@ BACKUP_SCRIPT="${GOODMORNING_BACKUP_SCRIPT:-$SCRIPT_DIR/examples/backup-script-t
 PROJECT_DIRS="${GOODMORNING_PROJECT_DIRS:-$HOME}"
 COMPLETION_CALLBACK="${GOODMORNING_COMPLETION_CALLBACK:-$SCRIPT_DIR/examples/completion-callback-template.sh}"
 
-# Feature flags
+# Feature flags - general
 SHOW_SETUP_MESSAGES="${GOODMORNING_SHOW_SETUP_MESSAGES:-true}"
+OPEN_LINKS="${GOODMORNING_OPEN_LINKS:-true}"
+
+# Feature flags - briefing sections (all enabled by default)
+SHOW_WEATHER="${GOODMORNING_SHOW_WEATHER:-true}"
+SHOW_HISTORY="${GOODMORNING_SHOW_HISTORY:-true}"
+SHOW_TECH_VERSIONS="${GOODMORNING_SHOW_TECH_VERSIONS:-true}"
+SHOW_COUNTRY="${GOODMORNING_SHOW_COUNTRY:-true}"
+SHOW_WORD="${GOODMORNING_SHOW_WORD:-true}"
+SHOW_WIKIPEDIA="${GOODMORNING_SHOW_WIKIPEDIA:-true}"
+SHOW_APOD="${GOODMORNING_SHOW_APOD:-true}"
+SHOW_CALENDAR="${GOODMORNING_SHOW_CALENDAR:-true}"
+SHOW_REMINDERS="${GOODMORNING_SHOW_REMINDERS:-true}"
+SHOW_EMAIL="${GOODMORNING_SHOW_EMAIL:-true}"
+SHOW_LEARNING="${GOODMORNING_SHOW_LEARNING:-true}"
+SHOW_SANITY="${GOODMORNING_SHOW_SANITY:-true}"
+SHOW_TIPS="${GOODMORNING_SHOW_TIPS:-true}"
+RUN_UPDATES="${GOODMORNING_RUN_UPDATES:-true}"
+
+# Email briefing configuration
+EMAIL_BRIEFING="${GOODMORNING_EMAIL_BRIEFING:-false}"
+EMAIL_RECIPIENT="${GOODMORNING_EMAIL_RECIPIENT:-}"
+EMAIL_SUBJECT="${GOODMORNING_EMAIL_SUBJECT:-Morning Briefing}"
+
+# Reminders configuration
+REMINDERS_LIST="${GOODMORNING_REMINDERS_LIST:-}"
 
 # Files default to CONFIG_DIR (which defaults to SCRIPT_DIR for immediate use)
 BANNER_FILE="${GOODMORNING_BANNER_FILE:-$CONFIG_DIR/banner.txt}"
@@ -122,8 +151,41 @@ LEARNING_SOURCES_FILE="${GOODMORNING_LEARNING_SOURCES_FILE:-$CONFIG_DIR/learning
 LOGS_DIR="${GOODMORNING_LOGS_DIR:-$CONFIG_DIR/logs}"
 LOG_FILE="$LOGS_DIR/goodmorning.log"
 
+# Output history (must be after CONFIG_DIR is defined)
+: ${OUTPUT_HISTORY_DIR:="${GOODMORNING_OUTPUT_HISTORY_DIR:-$CONFIG_DIR/output_history}"}
+
 TEMP_FILES=()
 BACKGROUND_PIDS=()
+
+# Setup output history logging
+_setup_output_history() {
+  local day_name=$(date +%A)
+  local day_dir="$OUTPUT_HISTORY_DIR/$day_name"
+
+  # Create day directory
+  mkdir -p "$day_dir"
+
+  # Find next file number for today
+  local count=1
+  while [ -f "$day_dir/goodmorning-${count}.txt" ]; do
+    count=$((count + 1))
+  done
+
+  OUTPUT_HISTORY_FILE="$day_dir/goodmorning-${count}.txt"
+
+  # Clean up old days (keep only 7 days)
+  local current_day_num=$(date +%u)
+  for old_dir in "$OUTPUT_HISTORY_DIR"/*/; do
+    if [ -d "$old_dir" ]; then
+      local dir_name=$(basename "$old_dir")
+      # Check if this directory is older than 7 days by checking modification time
+      local dir_age=$(find "$old_dir" -maxdepth 0 -mtime +6 2>/dev/null)
+      if [ -n "$dir_age" ]; then
+        rm -rf "$old_dir"
+      fi
+    fi
+  done
+}
 
 main() {
   # Parse command line arguments
@@ -155,22 +217,29 @@ main() {
   echo "Good Morning - $(date)" >> "$LOG_FILE"
   echo "========================================" >> "$LOG_FILE"
 
+  # Setup output history
+  _setup_output_history
+
+  # Capture all output to history file while still displaying to terminal
+  exec > >(tee -a "$OUTPUT_HISTORY_FILE") 2>&1
+
   _check_dependencies || exit 1
 
-  start_background_updates
+  [[ "$RUN_UPDATES" == "true" ]] && start_background_updates
   show_banner
-  show_weather
-  show_history
-  show_tech_versions
-  show_country_of_day
-  show_word_of_day
-  show_wikipedia_featured
-  show_apod
-  show_calendar
-  show_reminders
-  show_email
-  show_daily_learning
-  show_learning_tips
+  [[ "$SHOW_WEATHER" == "true" ]] && show_weather
+  [[ "$SHOW_HISTORY" == "true" ]] && show_history
+  [[ "$SHOW_TECH_VERSIONS" == "true" ]] && show_tech_versions
+  [[ "$SHOW_COUNTRY" == "true" ]] && show_country_of_day
+  [[ "$SHOW_WORD" == "true" ]] && show_word_of_day
+  [[ "$SHOW_WIKIPEDIA" == "true" ]] && show_wikipedia_featured
+  [[ "$SHOW_APOD" == "true" ]] && show_apod
+  [[ "$SHOW_CALENDAR" == "true" ]] && show_calendar
+  [[ "$SHOW_REMINDERS" == "true" ]] && show_reminders
+  [[ "$SHOW_EMAIL" == "true" ]] && show_email
+  [[ "$SHOW_LEARNING" == "true" ]] && show_daily_learning
+  [[ "$SHOW_SANITY" == "true" ]] && show_sanity_maintenance
+  [[ "$SHOW_TIPS" == "true" ]] && show_learning_tips
 
   if [ -n "$COMPLETION_CALLBACK" ]; then
     print_section "Completion Callback"
@@ -179,6 +248,32 @@ main() {
   fi
 
   echo_gray "Log: ${LOG_FILE}"
+  echo_gray "Output saved: ${OUTPUT_HISTORY_FILE}"
+
+  # Email the briefing if configured
+  if [[ "$EMAIL_BRIEFING" == "true" ]] && [ -n "$EMAIL_RECIPIENT" ]; then
+    _send_briefing_email
+  fi
+}
+
+# Send the briefing via email
+_send_briefing_email() {
+  if [ ! -f "$OUTPUT_HISTORY_FILE" ]; then
+    echo_warning "Cannot send email: briefing file not found"
+    return 1
+  fi
+
+  # Strip ANSI color codes for email
+  local plain_content=$(sed 's/\x1b\[[0-9;]*m//g' "$OUTPUT_HISTORY_FILE")
+
+  # Send email using macOS mail command
+  echo "$plain_content" | mail -s "$EMAIL_SUBJECT - $(date +%Y-%m-%d)" "$EMAIL_RECIPIENT" 2>> "$LOG_FILE"
+
+  if [ $? -eq 0 ]; then
+    echo_success "Briefing emailed to $EMAIL_RECIPIENT"
+  else
+    echo_warning "Failed to send briefing email"
+  fi
 }
 
 # Run when the file is sourced, unless we want to load the file and test things.

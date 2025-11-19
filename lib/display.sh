@@ -28,7 +28,12 @@ show_banner() {
 
 show_weather() {
   echo_yellow "🌤️  Weather:"
-  curl -s "wttr.in/?format=3" 2>> "$LOG_FILE" || echo "Weather unavailable"
+  local weather=$(fetch_with_spinner "Fetching weather..." curl -s --max-time 10 "wttr.in/?format=3")
+  if [ -n "$weather" ]; then
+    echo "$weather"
+  else
+    echo "Weather unavailable"
+  fi
   echo ""
 }
 
@@ -46,8 +51,12 @@ show_history() {
   fi
 
   if command_exists jq; then
-    curl -s "https://en.wikipedia.org/api/rest_v1/feed/onthisday/events/${month}/${day}" 2>> "$LOG_FILE" | \
-      jq -r ".events[:${MAX_HISTORY_EVENTS}] | .[] | \"  • \(.year): \(.text)\"" 2>> "$LOG_FILE" || echo "Historical events unavailable"
+    local history_data=$(fetch_with_spinner "Fetching history..." curl -s --max-time 10 "https://en.wikipedia.org/api/rest_v1/feed/onthisday/events/${month}/${day}")
+    if [ -n "$history_data" ]; then
+      echo "$history_data" | jq -r ".events[:${MAX_HISTORY_EVENTS}] | .[] | \"  • \(.year): \(.text)\"" 2>> "$LOG_FILE" || echo "Historical events unavailable"
+    else
+      echo "Historical events unavailable"
+    fi
   else
     show_setup_message "Install jq for Wikipedia history: brew install jq"
   fi

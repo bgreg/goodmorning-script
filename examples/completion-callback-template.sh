@@ -36,5 +36,9 @@ echo "  - cd ~/workspace/my-project"
 echo "  - docker-compose up -d"
 echo "  - tmux new-session -s dev"
 echo ""
+echo "Fun examples:"
+echo '  - claude -p "teach me a simple card magic trick"'
+echo '  - curl -s "https://api.quotable.io/random" | jq -r .content | say'
+echo ""
 
 return 0

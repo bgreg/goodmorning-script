@@ -27,9 +27,12 @@
 - Reminders and tasks due today
 - Unread email count from Mail.app
 - **Daily Learning** - customizable topic categories with random link suggestions
+- **Sanity Maintenance** - random entertainment links (comics, games, forums)
 - AI-generated personalized learning tips (requires Claude Code)
 - Background system updates (Homebrew, Vim plugins, custom scripts)
 - macOS notification when updates complete
+- **Output History** - saves daily briefings with 7-day retention
+- **Email Briefing** - optional email delivery of daily briefing
 - Optional text-to-speech greeting (disabled by default, enable with `--noisy` flag)
 - **Offline mode detection** - automatically skips internet-requiring features when offline
 - **Smart caching** - all API data cached for 24 hours to minimize API calls
@@ -130,12 +133,26 @@ When you run the script, you'll see a formatted terminal output with:
   🔗 https://www.postgresql.org/docs/current/indexes.html
 
 ========================================
+  🧘 Sanity Maintenance
+========================================
+  Comics:
+    XKCD: Machine Learning
+    https://xkcd.com/1838/
+
+  Games:
+    Wordle
+    https://www.nytimes.com/games/wordle/index.html
+
+========================================
   💡 Today's Learning Tip
 ========================================
   Based on your recent work with PostgreSQL migrations...
   [AI-generated personalized tip]
 
 🔄 Background updates running... (Homebrew, Vim plugins, etc.)
+
+Log: ~/.config/goodmorning/logs/goodmorning.log
+Output saved: ~/.config/goodmorning/output_history/Tuesday/goodmorning-1.txt
 ```
 
 The script adapts to your configuration and available data sources.
@@ -267,7 +284,17 @@ Configuration is managed through environment variables. The setup script handles
 | `GOODMORNING_USER_NAME` | Name used in greeting | `$USER` | No |
 | `GOODMORNING_ENABLE_TTS` | Enable text-to-speech greeting | `false` | No |
 | `GOODMORNING_BANNER_FILE` | Path to ASCII art banner file | `$GOODMORNING_CONFIG_DIR/banner.txt` | No |
-| `GOODMORNING_LEARNING_SOURCES_FILE` | Path to daily learning sources file | `$GOODMORNING_CONFIG_DIR/learning-sources.txt` | No |
+| `GOODMORNING_LEARNING_SOURCES_FILE` | Path to daily learning sources file | `$GOODMORNING_CONFIG_DIR/learning-sources.json` | No |
+| `GOODMORNING_LOGS_DIR` | Directory for log files | `$GOODMORNING_CONFIG_DIR/logs` | No |
+| `GOODMORNING_OUTPUT_HISTORY_DIR` | Directory for output history | `$GOODMORNING_CONFIG_DIR/output_history` | No |
+| `GOODMORNING_EMAIL_BRIEFING` | Send briefing via email | `false` | No |
+| `GOODMORNING_EMAIL_RECIPIENT` | Email address for briefing | (none) | No |
+| `GOODMORNING_EMAIL_SUBJECT` | Subject line for briefing email | `Morning Briefing` | No |
+| `GOODMORNING_SHOW_WEATHER` | Show weather section | `true` | No |
+| `GOODMORNING_SHOW_HISTORY` | Show history section | `true` | No |
+| `GOODMORNING_SHOW_LEARNING` | Show daily learning section | `true` | No |
+| `GOODMORNING_SHOW_SANITY` | Show sanity maintenance section | `true` | No |
+| `GOODMORNING_SHOW_TIPS` | Show AI learning tips | `true` | No |
 | `GOODMORNING_BACKUP_SCRIPT` | Path to backup script to run | (none) | No |
 | `GOODMORNING_VIM_PLUGINS_DIR` | Vim plugins directory to update | `$HOME/.vim/pack/vendor/start` | No |
 | `GOODMORNING_PROJECT_DIRS` | Colon-separated directories to scan for git commits | `$HOME` | No |
@@ -376,96 +403,86 @@ export GOODMORNING_BANNER_FILE="/path/to/custom/banner.txt"
 **Fallback:**
 If the banner file doesn't exist, the script displays a simple text banner with your username.
 
-### Daily Learning Sources (learning-sources.txt)
+### Daily Learning Sources (learning-sources.json)
 
-The script randomly selects one learning resource each day from `~/.config/goodmorning/learning-sources.txt`. Supports both static URLs and dynamic sitemap fetching.
+The script randomly selects learning resources from `~/.config/goodmorning/learning-sources.json`. Supports both static URLs and dynamic sitemap fetching.
 
-**Format:**
-```
-[Category Name]
-sitemap:https://example.com/sitemap.xml
-URL|Title
-
-[Another Category]
-URL|Title
-```
-
-**Sitemap Support (New!):**
-You can now point to any documentation sitemap and the script will fetch and randomly select from it:
-
-```
-[PostgreSQL Docs]
-sitemap:https://www.postgresql.org/docs/sitemap.xml
-
-[Ruby on Rails]
-sitemap:https://guides.rubyonrails.org/sitemap.xml.gz
-
-[MDN Web Docs]
-sitemap:https://developer.mozilla.org/sitemap.xml
-```
-
-**Static URLs (Traditional):**
-```
-[PostgreSQL]
-https://www.postgresql.org/docs/current/queries.html|Queries
-https://www.postgresql.org/docs/current/indexes.html|Indexes
-
-[Ruby]
-https://ruby-doc.org/core/|Ruby Core Documentation
+**JSON Format:**
+```json
+{
+  "sitemaps": [
+    {"title": "PostgreSQL Docs", "sitemap": "https://www.postgresql.org/docs/sitemap.xml"},
+    {"title": "Ruby on Rails", "sitemap": "https://guides.rubyonrails.org/sitemap.xml.gz"}
+  ],
+  "static": [
+    {"title": "AWS Lambda Guide", "url": "https://docs.aws.amazon.com/lambda/latest/dg/"},
+    {"title": "GitHub Actions Docs", "url": "https://docs.github.com/en/actions"}
+  ]
+}
 ```
 
 **How it Works:**
-- Script randomly picks a category
-- For sitemap categories: fetches the sitemap, extracts URLs, and randomly selects one
-- For static categories: randomly selects from the provided URLs
-- Automatically filters out images, CSS, and other non-documentation files
+- Displays one random sitemap-based resource (fetched dynamically)
+- Displays one random static resource
+- Automatically extracts page titles from URLs
+- Filters out images, CSS, and non-documentation files
 
-**Finding Sitemaps:**
-Most documentation sites publish sitemaps for SEO purposes. Here's how to find them:
+The default file comes pre-populated with resources for PostgreSQL, Rails, ESLint, Zsh, AWS, and more.
 
-1. **Check robots.txt** - Visit `https://example.com/robots.txt` and look for `Sitemap:` entries
-   ```bash
-   curl https://guides.rubyonrails.org/robots.txt
-   ```
+### Sanity Maintenance Sources (sanity-maintenance-sources.json)
 
-2. **Try common locations:**
-   - `/sitemap.xml` (most common)
-   - `/sitemap_index.xml` (for large sites)
-   - `/sitemap.xml.gz` (compressed)
-   - `/sitemaps/sitemap.xml`
+Entertainment and humor links for mental health breaks. Organized by categories.
 
-3. **View page source** - Look for `<link rel="sitemap">` tags in the HTML
-
-4. **Use browser DevTools** - Check the Network tab for sitemap requests
-
-5. **If no sitemap exists** - Use static URL format instead
-
-**Customization:**
-Add your own learning topics and resources:
-```bash
-# Edit the file
-vim ~/.config/goodmorning/learning-sources.txt
-
-# Add a new category
-cat >> ~/.config/goodmorning/learning-sources.txt <<EOF
-
-[Python]
-https://docs.python.org/3/|Python Documentation
-https://realpython.com/|Real Python Tutorials
-EOF
+**JSON Format:**
+```json
+{
+  "sitemaps": [],
+  "categories": {
+    "comics": [
+      {"title": "XKCD", "url": "xkcd:random"},
+      {"title": "Random CommitStrip", "url": "https://www.commitstrip.com/?random=1"}
+    ],
+    "games": [
+      {"title": "Wordle", "url": "https://www.nytimes.com/games/wordle/index.html"}
+    ],
+    "satire": [
+      {"title": "The Onion", "url": "https://theonion.com"}
+    ]
+  }
+}
 ```
 
-**Custom Location:**
-Override the default location with an environment variable:
-```bash
-export GOODMORNING_LEARNING_SOURCES_FILE="/path/to/custom/sources.txt"
+**Special URL Types:**
+- `xkcd:random` - Fetches a random XKCD comic via their API
+
+### Output History
+
+Daily briefings are saved to `~/.config/goodmorning/output_history/` with automatic 7-day retention.
+
+**Structure:**
+```
+output_history/
+  Monday/
+    goodmorning-1.txt
+    goodmorning-2.txt
+  Tuesday/
+    goodmorning-1.txt
+  ...
 ```
 
-The default file comes pre-populated with resources for:
-- PostgreSQL
-- Ruby & Rails
-- JavaScript & ES6+
-- Zsh & Shell scripting
+Files are numbered per day and automatically cleaned after 7 days.
+
+### Email Briefing
+
+Send your morning briefing via email:
+
+```bash
+export GOODMORNING_EMAIL_BRIEFING="true"
+export GOODMORNING_EMAIL_RECIPIENT="you@example.com"
+export GOODMORNING_EMAIL_SUBJECT="Good Morning Briefing"
+```
+
+Uses the macOS `mail` command. ANSI color codes are automatically stripped for email.
 
 ## Completion Callback
 

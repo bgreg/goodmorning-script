@@ -13,7 +13,7 @@
 
 _run_backup() {
   if [ -n "$BACKUP_SCRIPT" ]; then
-    echo "\n💾 Backing up development environment..."
+    print "\n💾 Backing up development environment..."
     if [ -f "$BACKUP_SCRIPT" ]; then
       if "$BACKUP_SCRIPT" 2>&1; then
         echo_success "Dev environment backup complete!"
@@ -29,13 +29,13 @@ _run_backup() {
 }
 
 _update_homebrew() {
-  echo "\n📦 Updating Homebrew..."
+  print "\n📦 Updating Homebrew..."
   brew update 2>&1
 
-  echo "\n⬆️  Upgrading Homebrew packages..."
+  print "\n⬆️  Upgrading Homebrew packages..."
   brew upgrade 2>&1
 
-  echo "\n🩺 Running brew doctor..."
+  print "\n🩺 Running brew doctor..."
   if brew doctor 2>&1; then
     echo_success "Brew doctor: All good!"
   else
@@ -44,7 +44,7 @@ _update_homebrew() {
 }
 
 _update_claude_code() {
-  echo "\n🤖 Updating Claude Code..."
+  print "\n🤖 Updating Claude Code..."
   if command_exists claude; then
     npm update -g @anthropic-ai/claude-code 2>&1 || echo_success "Claude Code is already up to date"
   else
@@ -67,7 +67,7 @@ _goodmorning_updates() {
     _update_homebrew
     _update_claude_code
 
-    echo "\nCompleted at $(date)"
+    print "\nCompleted at $(date)"
   } > "$log_file" 2>&1
 
   # Log file output - manual format for precise control over file content

@@ -3,147 +3,112 @@
 ###############################################################################
 # Daily Learning Functions
 #
-# Provides daily learning suggestions from configurable URL sources
-# organized by topic categories. Supports both static URLs and dynamic
-# sitemap fetching.
+# Provides daily learning suggestions from two source types:
+# - Sitemaps: Dynamic random page selection from site sitemaps
+# - Static: Direct links to documentation pages
 #
-# File Format (learning-sources.txt):
-#   [Category Name]
-#   sitemap:https://example.com/sitemap.xml
-#   URL|Title
-#
-#   [Another Category]
-#   URL|Title
+# JSON Format (learning-sources.json):
+#   {
+#     "sitemaps": [{ "title": "Name", "sitemap": "url" }],
+#     "static": [{ "title": "Name", "url": "url" }]
+#   }
 ###############################################################################
 
-# Fetch and parse sitemap URLs
-_fetch_sitemap_urls() {
-  local sitemap_url="$1"
-  local urls=()
+# Source shared sitemap utilities
+source "${SCRIPT_DIR}/lib/sitemap.sh"
 
-  # Fetch sitemap and extract <loc> tags
-  local sitemap_content=$(curl -s -L --max-time 5 "$sitemap_url" 2>/dev/null)
+# Display a sitemap-based learning resource
+_show_sitemap_resource() {
+  local json_file="$1"
 
-  if [ -n "$sitemap_content" ]; then
-    # Extract URLs from <loc> tags, filter for documentation pages
-    urls=($(echo "$sitemap_content" | \
-            grep -o '<loc>[^<]*</loc>' | \
-            sed 's|<loc>\(.*\)</loc>|\1|' | \
-            grep -v '\.\(png\|jpg\|jpeg\|gif\|svg\|css\|js\|xml\|pdf\)$' | \
-            grep -E '(doc|guide|tutorial|reference|api|manual|learn)'))
+  local sitemap_count=$(jq '.sitemaps | length' "$json_file" 2>/dev/null)
+  [ -z "$sitemap_count" ] || [ "$sitemap_count" -eq 0 ] && return 1
 
-    # If no filtered URLs, use all URLs from sitemap
-    if [ ${#urls[@]} -eq 0 ]; then
-      urls=($(echo "$sitemap_content" | \
-              grep -o '<loc>[^<]*</loc>' | \
-              sed 's|<loc>\(.*\)</loc>|\1|' | \
-              grep -v '\.\(png\|jpg\|jpeg\|gif\|svg\|css\|js\|xml\)$'))
-    fi
+  local random_index=$((RANDOM % sitemap_count))
+  local title=$(jq -r ".sitemaps[$random_index].title" "$json_file")
+  local sitemap=$(jq -r ".sitemaps[$random_index].sitemap" "$json_file")
+
+  local sitemap_content
+  sitemap_content=$(fetch_with_spinner "Fetching sitemap..." fetch_doc_sitemap_urls "$sitemap")
+
+  if [ -z "$sitemap_content" ]; then
+    echo_yellow "  Failed to fetch from ${title}"
+    return 1
   fi
 
-  printf '%s\n' "${urls[@]}"
+  local -a sitemap_links
+  # Split content into array, handling potential empty or malformed content
+  if [[ -n "$sitemap_content" ]]; then
+    sitemap_links=("${(@f)sitemap_content}")
+  fi
+
+  if [ ${#sitemap_links[@]} -eq 0 ]; then
+    echo_yellow "  No links found in ${title}"
+    return 1
+  fi
+
+  local doc_url="${sitemap_links[$((RANDOM % ${#sitemap_links[@]} + 1))]}"
+  local doc_title=$(extract_title_from_url "$doc_url")
+
+  echo_cyan "  Topic: ${title}"
+  echo_yellow "  ${doc_title}"
+  echo_gray "  ${doc_url}"
+
+  if [[ "$doc_url" =~ ^https?:// ]] && [[ "$OPEN_LINKS" == "true" ]]; then
+    open "$doc_url"
+  fi
+
+  return 0
 }
 
-# Extract title from URL
-_extract_title_from_url() {
-  local url="$1"
-  # Get last path segment, remove extension, replace dashes/underscores with spaces, title case
-  local title=$(echo "$url" | sed -E 's|.*/([^/]+)/?$|\1|' | \
-                sed -E 's|\.(html?|php|aspx?)$||' | \
-                tr '-_' ' ' | \
-                awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) tolower(substr($i,2))}1')
-  echo "$title"
+# Display a static learning resource
+_show_static_resource() {
+  local json_file="$1"
+
+  local static_count=$(jq '.static | length' "$json_file" 2>/dev/null)
+  [ -z "$static_count" ] || [ "$static_count" -eq 0 ] && return 1
+
+  local random_index=$((RANDOM % static_count))
+  local title=$(jq -r ".static[$random_index].title" "$json_file")
+  local url=$(jq -r ".static[$random_index].url" "$json_file")
+
+  echo_cyan "  Topic: ${title}"
+  echo_gray "  ${url}"
+
+  if [[ "$url" =~ ^https?:// ]] && [[ "$OPEN_LINKS" == "true" ]]; then
+    open "$url"
+  fi
+
+  return 0
 }
 
 show_daily_learning() {
   print_section "📚 Daily Learning:"
 
-  if [ -f "$LEARNING_SOURCES_FILE" ]; then
-    local -A categories
-    local -A sitemap_urls
-    local current_category=""
+  # Find JSON file
+  local json_file="${GOODMORNING_CONFIG_DIR}/learning-sources.json"
+  [ ! -f "$json_file" ] && json_file="${SCRIPT_DIR}/learning-sources.json"
 
-    # Parse learning sources file
-    while IFS= read -r line; do
-      [[ -z "$line" || "$line" =~ "^#" ]] && continue
+  if [ ! -f "$json_file" ]; then
+    echo_yellow "  Learning sources file not found"
+    show_setup_message "Run './setup.sh --section learning' to configure"
+    echo ""
+    return
+  fi
 
-      if [[ "$line" =~ "^\[(.*)\]$" ]]; then
-        current_category="${match[1]}"
-        categories[$current_category]=""
-        sitemap_urls[$current_category]=""
-      elif [[ -n "$current_category" && "$line" =~ "^sitemap:(.+)$" ]]; then
-        sitemap_urls[$current_category]="${match[1]}"
-      elif [[ -n "$current_category" && "$line" =~ "^(https?://[^|]+)\|(.+)$" ]]; then
-        local url="${match[1]}"
-        local title="${match[2]}"
-        if [ -z "${categories[$current_category]}" ]; then
-          categories[$current_category]="${url}|${title}"
-        else
-          categories[$current_category]="${categories[$current_category]}"$'\n'"${url}|${title}"
-        fi
-      fi
-    done < "$LEARNING_SOURCES_FILE"
+  # Show one from sitemaps
+  echo ""
+  echo_green "  📄 From Sitemap:"
+  if ! _show_sitemap_resource "$json_file"; then
+    echo_yellow "  No sitemap sources available"
+  fi
 
-    if [ ${#categories[@]} -gt 0 ] || [ ${#sitemap_urls[@]} -gt 0 ]; then
-      # Select random category
-      local all_categories=(${(@k)categories} ${(@k)sitemap_urls})
-      local random_category="${all_categories[$((RANDOM % ${#all_categories[@]} + 1))]}"
+  echo ""
 
-      local doc_url=""
-      local doc_title=""
-
-      # Check if category uses sitemap
-      if [ -n "${sitemap_urls[$random_category]}" ]; then
-        local sitemap="${sitemap_urls[$random_category]}"
-        echo_gray "  Fetching from sitemap..."
-
-        local -a sitemap_links
-        sitemap_links=(${(f)"$(_fetch_sitemap_urls "$sitemap")"})
-
-        if [ ${#sitemap_links[@]} -gt 0 ]; then
-          doc_url="${sitemap_links[$((RANDOM % ${#sitemap_links[@]} + 1))]}"
-          doc_title=$(_extract_title_from_url "$doc_url")
-        else
-          echo_yellow "  Failed to fetch sitemap URLs"
-          return
-        fi
-      else
-        # Use static URLs
-        local -a links
-        links=("${(@f)categories[$random_category]}")
-
-        if [ ${#links[@]} -gt 0 ]; then
-          local random_link="${links[$((RANDOM % ${#links[@]} + 1))]}"
-          doc_url="${random_link%%|*}"
-          doc_title="${random_link#*|}"
-        else
-          echo_yellow "  No learning resources found in category: ${random_category}"
-          return
-        fi
-      fi
-
-      # Display selection
-      if [ -n "$doc_url" ]; then
-        echo_cyan "  Topic: ${random_category}"
-        echo_yellow "  ${doc_title}"
-        echo_gray "  ${doc_url}\n"
-
-        if [[ "$doc_url" =~ ^https?:// ]]; then
-          open "$doc_url"
-        else
-          echo_warning "Skipping invalid URL format: ${doc_url}"
-        fi
-      fi
-    else
-      echo_yellow "  No learning categories found in ${LEARNING_SOURCES_FILE}"
-      show_setup_message "Create categories with format:"
-      show_setup_message "  [Category Name]"
-      show_setup_message "  sitemap:https://example.com/sitemap.xml"
-      show_setup_message "  or URL|Title"
-    fi
-  else
-    echo_yellow "  Learning sources file not found: ${LEARNING_SOURCES_FILE}"
-    show_setup_message "Run './setup.sh --reconfigure' to set up learning sources"
+  # Show one from static
+  echo_green "  🔗 Static Resource:"
+  if ! _show_static_resource "$json_file"; then
+    echo_yellow "  No static sources available"
   fi
 
   echo ""
