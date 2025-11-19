@@ -19,7 +19,15 @@ jobs:
 
     - name: Install dependencies
       run: |
-        brew install jq figlet shellspec
+        brew install jq figlet shellspec shellcheck shfmt
+
+    - name: Shellcheck lint
+      run: |
+        shellcheck -x goodmorning.sh setup.sh lib/*.sh
+
+    - name: Check formatting (shfmt)
+      run: |
+        shfmt -d -i 2 -ci goodmorning.sh setup.sh lib/*.sh
 
     - name: Run specs
       run: shellspec
