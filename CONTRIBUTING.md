@@ -20,6 +20,7 @@ Thank you for your interest in contributing to the Good Morning Script! This doc
 - figlet (for custom ASCII banners)
 - icalBuddy (for calendar/reminders integration)
 - Claude Code (for AI-powered learning tips)
+- ShellSpec (for running tests)
 
 ### Installation for Development
 
@@ -36,28 +37,46 @@ Thank you for your interest in contributing to the Good Morning Script! This doc
    ./setup.sh
    ```
 
-3. Follow the interactive prompts to configure your development environment.
+3. Install ShellSpec for testing:
+
+   ```bash
+   brew install shellspec
+   ```
+
+4. Follow the interactive prompts to configure your development environment.
 
 ## Running Tests
 
-The project includes a comprehensive test suite covering syntax validation, security checks, resource handling, integration tests, functional tests, error handling, and regression tests.
+The project uses [ShellSpec](https://shellspec.info/) for testing with specs organized by component.
 
 ### Run All Tests
 
 ```bash
-./tests/run-all-tests.sh
+shellspec
 ```
 
-### Run Individual Test Phases
+### Run Specific Specs
 
 ```bash
-./tests/test-phase1-syntax.sh          # Syntax validation
-./tests/test-phase2-security.sh        # Security checks
-./tests/test-phase3-resources.sh       # Resource management
-./tests/test-phase4-integration.sh     # Integration tests
-./tests/test-phase5-functional.sh      # Functional tests
-./tests/test-phase6-errorhandling.sh   # Error handling
-./tests/test-phase7-regression.sh      # Regression tests
+shellspec spec/goodmorning/          # Goodmorning script specs
+shellspec spec/setup/                # Setup script specs
+shellspec spec/lib/                  # Library specs
+```
+
+### Run E2E Tests (Real APIs)
+
+E2E tests hit real APIs and require internet connectivity:
+
+```bash
+shellspec --tag real
+```
+
+### Test Output Formats
+
+```bash
+shellspec --format documentation     # Verbose output (default)
+shellspec --format progress          # Compact progress dots
+shellspec --format tap               # TAP format for CI
 ```
 
 ### Test Requirements
@@ -108,11 +127,24 @@ All contributions must:
 
 ### Testing Standards
 
-1. **Test File Naming:** `test-phase{N}-{category}.sh`
-2. **Test Setup Files:** `test-setup-phase{N}-{category}.sh`
-3. **Test Helpers:** Use shared helpers from `tests/test-helpers.sh`
-4. **Assertions:** Clearly document expected vs actual behavior
-5. **Cleanup:** Always clean up temporary files and processes
+1. **Spec File Naming:** `{component}_spec.sh` (e.g., `configuration_spec.sh`)
+2. **Spec Organization:** Group by component in `spec/{component}/`
+3. **Spec Helper:** Use `spec/spec_helper.sh` for shared setup
+4. **Assertions:** Use ShellSpec matchers for clear expectations
+5. **Cleanup:** Use `AfterAll` or `AfterEach` for cleanup
+6. **Tagging:** Use tags for special test categories (e.g., `:real` for E2E)
+
+Example spec structure:
+
+```bash
+Describe 'Feature name'
+  It 'does something expected'
+    When call some_function
+    The status should be success
+    The output should include "expected"
+  End
+End
+```
 
 ## Pull Request Process
 
@@ -133,13 +165,13 @@ All contributions must:
 4. **Test:**
 
    ```bash
-   ./tests/run-all-tests.sh
+   shellspec
    ```
 
 5. **Submit Pull Request:**
    - Provide clear description of changes
    - Reference any related issues
-   - Include test results
+   - CI will run tests automatically
 
 6. **Code Review:**
    - Address reviewer feedback
@@ -152,15 +184,19 @@ All contributions must:
 goodmorning-script/
 ├── goodmorning.sh           # Main script
 ├── setup.sh                 # Setup and configuration script
+├── lib/                     # Modular function library
 ├── LICENSE                  # MIT License
 ├── README.md                # Project documentation
 ├── CONTRIBUTING.md          # This file
 ├── postgresql-docs.txt      # Sample documentation links
-├── tests/                   # Test suite
-│   ├── run-all-tests.sh
-│   ├── test-helpers.sh
-│   ├── test-phase*.sh       # Test phases
-│   └── test-setup-phase*.sh # Setup tests
+├── .shellspec               # ShellSpec configuration
+├── spec/                    # Test suite
+│   ├── spec_helper.sh       # Shared test setup
+│   ├── support/             # Test support files
+│   ├── goodmorning/         # Main script specs
+│   ├── setup/               # Setup script specs
+│   ├── lib/                 # Library specs
+│   └── e2e/                 # End-to-end specs
 └── .github/
     └── workflows/
         └── test.yml         # CI configuration
@@ -204,7 +240,7 @@ New environment variables should:
 
 - Check existing issues and pull requests
 - Review the README.md for usage examples
-- Examine test files for code examples
+- Examine spec files for code examples
 - Open an issue for questions or clarifications
 
 ## License

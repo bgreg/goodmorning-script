@@ -57,14 +57,9 @@ say_was_called() {
   return 0
 }
 
-# Test helper: Load test helpers from old test suite
-load_test_helpers() {
-  if [ -f "tests/test-helpers.sh" ]; then
-    # Source the color functions first (required by test-helpers)
-    if [ -f "lib/colors.sh" ]; then
-      source "lib/colors.sh"
-    fi
-    # Now source test helpers
-    source "tests/test-helpers.sh"
+# Test helper: Load color functions
+load_colors() {
+  if [ -f "lib/colors.sh" ]; then
+    source "lib/colors.sh"
   fi
 }
