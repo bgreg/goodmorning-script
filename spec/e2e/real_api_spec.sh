@@ -95,10 +95,6 @@ Describe 'E2E Real API Tests'
       The contents of file "$OUTPUT_FILE" should match pattern "*Calendar*"
     End
 
-    It 'shows email section'
-      The contents of file "$OUTPUT_FILE" should match pattern "*Email*"
-    End
-
     It 'shows daily learning section'
       The contents of file "$OUTPUT_FILE" should match pattern "*Daily Learning*"
     End
@@ -113,6 +109,18 @@ Describe 'E2E Real API Tests'
 
     It 'shows sanity maintenance section'
       The contents of file "$OUTPUT_FILE" should match pattern "*Sanity Maintenance*"
+    End
+
+    It 'shows alias suggestions section'
+      The contents of file "$OUTPUT_FILE" should match pattern "*Alias Suggestions*"
+    End
+
+    It 'shows common typos section'
+      The contents of file "$OUTPUT_FILE" should match pattern "*Common Typos*"
+    End
+
+    It 'shows cat of the day section'
+      The contents of file "$OUTPUT_FILE" should match pattern "*Cat of the Day*"
     End
   End
 

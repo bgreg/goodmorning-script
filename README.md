@@ -25,14 +25,12 @@
 - **Astronomy Picture of the Day** - NASA's APOD with inline image display in iTerm2
 - Today's calendar events (via icalBuddy or macOS Calendar)
 - Reminders and tasks due today
-- Unread email count from Mail.app
 - **Daily Learning** - customizable topic categories with random link suggestions
 - **Sanity Maintenance** - random entertainment links (comics, games, forums)
 - AI-generated personalized learning tips (requires Claude Code)
 - Background system updates (Homebrew, Vim plugins, custom scripts)
 - macOS notification when updates complete
 - **Output History** - saves daily briefings with 7-day retention
-- **Email Briefing** - optional email delivery of daily briefing
 - Optional text-to-speech greeting (disabled by default, enable with `--noisy` flag)
 - **Offline mode detection** - automatically skips internet-requiring features when offline
 - **Smart caching** - all API data cached for 24 hours to minimize API calls
@@ -133,7 +131,7 @@ When you run the script, you'll see a formatted terminal output with:
   🔗 https://www.postgresql.org/docs/current/indexes.html
 
 ========================================
-  🧘 Sanity Maintenance
+  🤪 Sanity Maintenance
 ========================================
   Comics:
     XKCD: Machine Learning
@@ -287,9 +285,6 @@ Configuration is managed through environment variables. The setup script handles
 | `GOODMORNING_LEARNING_SOURCES_FILE` | Path to daily learning sources file | `$GOODMORNING_CONFIG_DIR/learning-sources.json` | No |
 | `GOODMORNING_LOGS_DIR` | Directory for log files | `$GOODMORNING_CONFIG_DIR/logs` | No |
 | `GOODMORNING_OUTPUT_HISTORY_DIR` | Directory for output history | `$GOODMORNING_CONFIG_DIR/output_history` | No |
-| `GOODMORNING_EMAIL_BRIEFING` | Send briefing via email | `false` | No |
-| `GOODMORNING_EMAIL_RECIPIENT` | Email address for briefing | (none) | No |
-| `GOODMORNING_EMAIL_SUBJECT` | Subject line for briefing email | `Morning Briefing` | No |
 | `GOODMORNING_SHOW_WEATHER` | Show weather section | `true` | No |
 | `GOODMORNING_SHOW_HISTORY` | Show history section | `true` | No |
 | `GOODMORNING_SHOW_LEARNING` | Show daily learning section | `true` | No |
@@ -472,18 +467,6 @@ output_history/
 
 Files are numbered per day and automatically cleaned after 7 days.
 
-### Email Briefing
-
-Send your morning briefing via email:
-
-```bash
-export GOODMORNING_EMAIL_BRIEFING="true"
-export GOODMORNING_EMAIL_RECIPIENT="you@example.com"
-export GOODMORNING_EMAIL_SUBJECT="Good Morning Briefing"
-```
-
-Uses the macOS `mail` command. ANSI color codes are automatically stripped for email.
-
 ## Completion Callback
 
 The script supports an optional completion callback that runs after all sections have been displayed. This allows you to add custom post-processing, logging, or additional output.
@@ -579,7 +562,7 @@ export GOODMORNING_PROJECT_DIRS="$HOME/workspace:$HOME/personal-projects"
 This script is designed for macOS and uses:
 
 - `say` command for voice greeting
-- `osascript` for calendar/reminders/email integration
+- `osascript` for calendar/reminders integration
 - macOS notification system
 
 For Linux/WSL, you may need to modify or disable these sections.

@@ -108,7 +108,7 @@ _show_non_comic_resource() {
 }
 
 show_sanity_maintenance() {
-  print_section "🧘 Sanity Maintenance:"
+  print_section "🤪 Sanity Maintenance:"
 
   # Find JSON file
   local json_file="${GOODMORNING_CONFIG_DIR}/sanity-maintenance-sources.json"

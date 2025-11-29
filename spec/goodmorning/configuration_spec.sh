@@ -53,11 +53,6 @@ Describe 'goodmorning.sh - Configuration'
       The variable MAX_REMINDERS should equal 10
     End
 
-    It 'sets MAX_EMAILS with default'
-      The variable MAX_EMAILS should not be blank
-      The variable MAX_EMAILS should equal 5
-    End
-
     It 'sets MAX_HISTORY_EVENTS with default'
       The variable MAX_HISTORY_EVENTS should not be blank
       The variable MAX_HISTORY_EVENTS should equal 3

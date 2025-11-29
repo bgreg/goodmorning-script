@@ -27,7 +27,6 @@ source_goodmorning() {
 
   # Set defaults if not already set
   : ${MAX_REMINDERS:=10}
-  : ${MAX_EMAILS:=5}
   : ${MAX_HISTORY_EVENTS:=3}
   : ${SPINNER_TIMEOUT:=30}
   : ${SCRIPT_DIR:=$(pwd)}

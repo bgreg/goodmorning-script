@@ -45,7 +45,7 @@ EOF
 
     It 'displays section header'
       When call show_sanity_maintenance
-      The output should include "🧘"
+      The output should include "🤪"
       The output should include "Sanity Maintenance"
       The status should be success
     End

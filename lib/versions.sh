@@ -175,6 +175,11 @@ show_tech_versions() {
   fi
 
   echo ""
-  echo_green "  💡 Cached for 24 hours"
+  # Show last fetched time from cache file
+  local cache_file="$(_get_cache_file node)"
+  if [ -f "$cache_file" ]; then
+    local last_fetched=$(stat -f "%Sm" -t "%Y-%m-%d %H:%M" "$cache_file" 2>/dev/null)
+    [ -n "$last_fetched" ] && echo_green "  💡 Last fetched: $last_fetched"
+  fi
   echo ""
 }

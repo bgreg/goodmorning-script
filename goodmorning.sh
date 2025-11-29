@@ -89,11 +89,17 @@ if [ -f "$SCRIPT_DIR/lib/sanity_maintenance.sh" ]; then
   source "$SCRIPT_DIR/lib/sanity_maintenance.sh"
 fi
 
+if [ -f "$SCRIPT_DIR/lib/github.sh" ]; then
+  source "$SCRIPT_DIR/lib/github.sh"
+fi
+
 # ZSH default pattern, assigns the left side of := only if not already set
 : ${MAX_REMINDERS:="${GOODMORNING_MAX_REMINDERS:-10}"}
-: ${MAX_EMAILS:="${GOODMORNING_MAX_EMAILS:-5}"}
+: ${MAX_GITHUB_NOTIFICATIONS:="${GOODMORNING_MAX_GITHUB_NOTIFICATIONS:-5}"}
+: ${MAX_GITHUB_PRS:="${GOODMORNING_MAX_GITHUB_PRS:-5}"}
+: ${MAX_GITHUB_ISSUES:="${GOODMORNING_MAX_GITHUB_ISSUES:-5}"}
 : ${MAX_HISTORY_EVENTS:="${GOODMORNING_MAX_HISTORY_EVENTS:-3}"}
-: ${MAX_REPOS_TO_SCAN:="${GOODMORNING_MAX_REPOS:-10}"}
+: ${MAX_REPOS_TO_SCAN:="${GOODMORNING_MAX_REPOS:-30}"}
 : ${MAX_COMMITS_PER_REPO:="${GOODMORNING_MAX_COMMITS:-5}"}
 : ${GIT_SCAN_DEPTH:="${GOODMORNING_GIT_DEPTH:-3}"}
 : ${GIT_LOOKBACK_DAYS:="${GOODMORNING_GIT_DAYS:-7}"}
@@ -127,18 +133,19 @@ SHOW_COUNTRY="${GOODMORNING_SHOW_COUNTRY:-true}"
 SHOW_WORD="${GOODMORNING_SHOW_WORD:-true}"
 SHOW_WIKIPEDIA="${GOODMORNING_SHOW_WIKIPEDIA:-true}"
 SHOW_APOD="${GOODMORNING_SHOW_APOD:-true}"
+SHOW_CAT="${GOODMORNING_SHOW_CAT:-true}"
 SHOW_CALENDAR="${GOODMORNING_SHOW_CALENDAR:-true}"
 SHOW_REMINDERS="${GOODMORNING_SHOW_REMINDERS:-true}"
-SHOW_EMAIL="${GOODMORNING_SHOW_EMAIL:-true}"
+SHOW_GITHUB="${GOODMORNING_SHOW_GITHUB:-true}"
+SHOW_GITHUB_PRS="${GOODMORNING_SHOW_GITHUB_PRS:-true}"
+SHOW_GITHUB_ISSUES="${GOODMORNING_SHOW_GITHUB_ISSUES:-true}"
+SHOW_ALIAS_SUGGESTIONS="${GOODMORNING_SHOW_ALIAS_SUGGESTIONS:-true}"
+SHOW_TYPOS="${GOODMORNING_SHOW_TYPOS:-true}"
+SHOW_SYSTEM_INFO="${GOODMORNING_SHOW_SYSTEM_INFO:-true}"
 SHOW_LEARNING="${GOODMORNING_SHOW_LEARNING:-true}"
 SHOW_SANITY="${GOODMORNING_SHOW_SANITY:-true}"
 SHOW_TIPS="${GOODMORNING_SHOW_TIPS:-true}"
 RUN_UPDATES="${GOODMORNING_RUN_UPDATES:-true}"
-
-# Email briefing configuration
-EMAIL_BRIEFING="${GOODMORNING_EMAIL_BRIEFING:-false}"
-EMAIL_RECIPIENT="${GOODMORNING_EMAIL_RECIPIENT:-}"
-EMAIL_SUBJECT="${GOODMORNING_EMAIL_SUBJECT:-Morning Briefing}"
 
 # Reminders configuration
 REMINDERS_LIST="${GOODMORNING_REMINDERS_LIST:-}"
@@ -220,8 +227,16 @@ main() {
   # Setup output history
   _setup_output_history
 
+  # Save original stdout for direct terminal writes (images bypass tee)
+  exec 3>&1
+  export GOODMORNING_TERMINAL_FD=3
+
   # Capture all output to history file while still displaying to terminal
   exec > >(tee -a "$OUTPUT_HISTORY_FILE") 2>&1
+
+  # iTerm2: Set window title and badge
+  _iterm_set_title "Good Morning - $(date '+%a %b %d')"
+  _iterm_set_badge "Good Morning\n$(date +%H:%M)"
 
   _check_dependencies || exit 1
 
@@ -234,9 +249,15 @@ main() {
   [[ "$SHOW_WORD" == "true" ]] && show_word_of_day
   [[ "$SHOW_WIKIPEDIA" == "true" ]] && show_wikipedia_featured
   [[ "$SHOW_APOD" == "true" ]] && show_apod
+  [[ "$SHOW_CAT" == "true" ]] && show_cat_of_day
   [[ "$SHOW_CALENDAR" == "true" ]] && show_calendar
   [[ "$SHOW_REMINDERS" == "true" ]] && show_reminders
-  [[ "$SHOW_EMAIL" == "true" ]] && show_email
+  [[ "$SHOW_GITHUB" == "true" ]] && show_github_notifications
+  [[ "$SHOW_GITHUB_PRS" == "true" ]] && show_github_prs
+  [[ "$SHOW_GITHUB_ISSUES" == "true" ]] && show_github_issues
+  [[ "$SHOW_ALIAS_SUGGESTIONS" == "true" ]] && show_alias_suggestions
+  [[ "$SHOW_TYPOS" == "true" ]] && show_common_typos
+  [[ "$SHOW_SYSTEM_INFO" == "true" ]] && show_system_info
   [[ "$SHOW_LEARNING" == "true" ]] && show_daily_learning
   [[ "$SHOW_SANITY" == "true" ]] && show_sanity_maintenance
   [[ "$SHOW_TIPS" == "true" ]] && show_learning_tips
@@ -250,30 +271,9 @@ main() {
   echo_gray "Log: ${LOG_FILE}"
   echo_gray "Output saved: ${OUTPUT_HISTORY_FILE}"
 
-  # Email the briefing if configured
-  if [[ "$EMAIL_BRIEFING" == "true" ]] && [ -n "$EMAIL_RECIPIENT" ]; then
-    _send_briefing_email
-  fi
-}
-
-# Send the briefing via email
-_send_briefing_email() {
-  if [ ! -f "$OUTPUT_HISTORY_FILE" ]; then
-    echo_warning "Cannot send email: briefing file not found"
-    return 1
-  fi
-
-  # Strip ANSI color codes for email
-  local plain_content=$(sed 's/\x1b\[[0-9;]*m//g' "$OUTPUT_HISTORY_FILE")
-
-  # Send email using macOS mail command
-  echo "$plain_content" | mail -s "$EMAIL_SUBJECT - $(date +%Y-%m-%d)" "$EMAIL_RECIPIENT" 2>> "$LOG_FILE"
-
-  if [ $? -eq 0 ]; then
-    echo_success "Briefing emailed to $EMAIL_RECIPIENT"
-  else
-    echo_warning "Failed to send briefing email"
-  fi
+  # iTerm2: Send completion notification and clear badge
+  _iterm_notify "Good Morning briefing complete"
+  _iterm_set_badge ""
 }
 
 # Run when the file is sourced, unless we want to load the file and test things.

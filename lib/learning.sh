@@ -98,7 +98,6 @@ show_daily_learning() {
 
   # Show one from sitemaps
   echo ""
-  echo_green "  📄 From Sitemap:"
   if ! _show_sitemap_resource "$json_file"; then
     echo_yellow "  No sitemap sources available"
   fi
@@ -106,7 +105,6 @@ show_daily_learning() {
   echo ""
 
   # Show one from static
-  echo_green "  🔗 Static Resource:"
   if ! _show_static_resource "$json_file"; then
     echo_yellow "  No static sources available"
   fi

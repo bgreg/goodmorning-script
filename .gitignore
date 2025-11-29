@@ -21,3 +21,6 @@ output_history/
 
 # ShellSpec temp files
 .shellspec-quick.log
+
+# Runtime cache (API responses, images)
+cache/

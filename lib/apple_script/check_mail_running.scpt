@@ -1,1 +1,0 @@
-application "Mail" is running

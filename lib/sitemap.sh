@@ -4,7 +4,7 @@
 # Sitemap Utility Functions
 #
 # Shared functions for fetching and parsing sitemaps.
-# Used by learning.sh, fun.sh, and other sections.
+# Used by learning.sh, sanity_maintenance.sh, and other sections.
 ###############################################################################
 
 # Fetch and parse sitemap URLs

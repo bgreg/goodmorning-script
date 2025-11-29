@@ -7,12 +7,34 @@
         "url": "xkcd:random"
       },
       {
-        "title": "Random SMBC Comic",
-        "url": "https://www.smbc-comics.com/comic/random"
-      },
-      {
         "title": "Random CommitStrip",
         "url": "https://www.commitstrip.com/?random=1"
+      },
+      {
+        "title": "Cyanide & Happiness",
+        "url": "https://explosm.net/comics/random"
+      },
+      {
+        "title": "DevHumor",
+        "url": "https://devhumor.com/"
+      }
+    ],
+    "memes": [
+      {
+        "title": "Imgflip Memes",
+        "url": "https://imgflip.com/meme"
+      },
+      {
+        "title": "I Can Has Cheezburger",
+        "url": "https://icanhas.cheezburger.com/"
+      },
+      {
+        "title": "InspiroBot",
+        "url": "https://inspirobot.me/"
+      },
+      {
+        "title": "Bored Panda",
+        "url": "https://www.boredpanda.com/"
       }
     ],
     "games": [
@@ -41,8 +63,8 @@
         "url": "https://slither.io/"
       },
       {
-        "title": "Agar.io",
-        "url": "https://agar.io/"
+        "title": "Krunker.io",
+        "url": "https://krunker.io/"
       }
     ],
     "satire": [
@@ -77,18 +99,18 @@
         "url": "https://news.ycombinator.com/"
       },
       {
-        "title": "Reddit Programming",
-        "url": "https://www.reddit.com/r/programming/"
+        "title": "Lobsters",
+        "url": "https://lobste.rs/"
       },
       {
-        "title": "Reddit ProgrammerHumor",
-        "url": "https://www.reddit.com/r/ProgrammerHumor/"
+        "title": "DEV Community",
+        "url": "https://dev.to/"
       }
     ],
     "random": [
       {
-        "title": "Is California On Fire?",
-        "url": "https://iscaliforniaonfire.com/"
+        "title": "Is The Internet On Fire?",
+        "url": "https://istheinternetonfire.com/"
       },
       {
         "title": "Is It Friday Yet?",
@@ -105,6 +127,18 @@
       {
         "title": "Random Street View",
         "url": "https://randomstreetview.com/"
+      },
+      {
+        "title": "Random Dog",
+        "url": "https://random.dog/"
+      },
+      {
+        "title": "Random Fox",
+        "url": "https://randomfox.ca/"
+      },
+      {
+        "title": "Cat of the Day",
+        "url": "https://catoftheday.com/"
       }
     ]
   }

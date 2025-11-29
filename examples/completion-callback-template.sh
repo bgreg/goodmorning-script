@@ -31,14 +31,8 @@
 echo "This is the completion callback template."
 echo "Copy and customize this file to add your own post-briefing actions."
 echo ""
-echo "Example actions:"
-echo "  - cd ~/workspace/my-project"
-echo "  - docker-compose up -d"
-echo "  - tmux new-session -s dev"
-echo ""
-echo "Fun examples:"
-echo '  - claude -p "teach me a simple card magic trick"'
-echo '  - curl -s "https://api.quotable.io/random" | jq -r .content | say'
+echo "Recommendations:"
+echo '  - curl -s "https://code.google.com/archive/p/badwordslist/downloads" | say'
 echo ""
 
 return 0

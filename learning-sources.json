@@ -9,10 +9,6 @@
       "sitemap": "https://ruby-doc.org/sitemap.xml"
     },
     {
-      "title": "MDN Web Docs",
-      "sitemap": "https://developer.mozilla.org/sitemaps/en-us/sitemap.xml.gz"
-    },
-    {
       "title": "Node.js",
       "sitemap": "https://nodejs.org/sitemap.xml"
     },
@@ -65,20 +61,8 @@
       "sitemap": "https://git-scm.com/sitemap.xml"
     },
     {
-      "title": "Elasticsearch",
-      "sitemap": "https://www.elastic.co/sitemap.xml"
-    },
-    {
       "title": "Grafana",
-      "sitemap": "https://grafana.com/sitemap.xml"
-    },
-    {
-      "title": "Nginx",
-      "sitemap": "https://www.nginx.com/sitemap.xml"
-    },
-    {
-      "title": "RegExr Patterns",
-      "sitemap": "https://regexr.com/sitemap.xml"
+      "sitemap": "https://grafana.com/en/sitemap.xml"
     },
     {
       "title": "OWASP Security",
@@ -87,10 +71,6 @@
     {
       "title": "OWASP Cheat Sheets",
       "sitemap": "https://cheatsheetseries.owasp.org/sitemap.xml"
-    },
-    {
-      "title": "CVE Database",
-      "sitemap": "https://cve.mitre.org/sitemap.xml"
     },
     {
       "title": "PortSwigger Security",
@@ -283,10 +263,6 @@
       "url": "https://www.kernel.org/doc/html/latest/"
     },
     {
-      "title": "Bash Reference Manual",
-      "url": "https://www.gnu.org/software/bash/manual/bash.html"
-    },
-    {
       "title": "Regex101",
       "url": "https://regex101.com/"
     },
@@ -329,10 +305,6 @@
     {
       "title": "Tmux Wiki",
       "url": "https://github.com/tmux/tmux/wiki"
-    },
-    {
-      "title": "NVD Recent CVEs",
-      "url": "https://nvd.nist.gov/vuln/search/results?form_type=Basic&results_type=overview&search_type=all&isCpeNameSearch=false"
     },
     {
       "title": "CWE Top 25",

@@ -104,5 +104,43 @@ Describe 'setup.sh - Input Validation'
       The status should be success
       The output should not be blank
     End
+
+    It 'accepts --doctor flag'
+      When call grep '\-\-doctor' "$PROJECT_ROOT/setup.sh"
+      The status should be success
+      The output should not be blank
+    End
+  End
+
+  Describe 'Doctor validation functions'
+    It 'has terminal features check'
+      When call grep 'doctor_check_terminal_features' "$PROJECT_ROOT/lib/validation.sh"
+      The status should be success
+      The output should not be blank
+    End
+
+    It 'checks for iTerm2 support'
+      When call grep 'TERM_PROGRAM.*iTerm' "$PROJECT_ROOT/lib/validation.sh"
+      The status should be success
+      The output should not be blank
+    End
+
+    It 'has validation pass function'
+      When call grep 'validation_pass' "$PROJECT_ROOT/lib/validation.sh"
+      The status should be success
+      The output should not be blank
+    End
+
+    It 'has validation fail function'
+      When call grep 'validation_fail' "$PROJECT_ROOT/lib/validation.sh"
+      The status should be success
+      The output should not be blank
+    End
+
+    It 'has truncation helper'
+      When call grep '_truncate_validation_message' "$PROJECT_ROOT/lib/validation.sh"
+      The status should be success
+      The output should not be blank
+    End
   End
 End

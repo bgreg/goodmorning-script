@@ -123,8 +123,6 @@ show_country_of_day() {
   fi
 
   echo ""
-  echo_green "  💡 Daily rotation - refreshes every 24 hours"
-  echo ""
 }
 
 ###############################################################################
@@ -235,7 +233,7 @@ show_word_of_day() {
   echo "  $definition" | fold -s -w 70 | sed 's/^/  /'
 
   example=$(_safe_display "$example" "")
-  if [ -n "$example" ]; then
+  if [ -n "$example" ] && [ "$example" != "N/A" ]; then
     echo ""
     echo_gray "  Example: \"$example\""
   fi
@@ -347,13 +345,11 @@ _fetch_apod() {
     return 1
   fi
 
-  # Check for API errors before caching
   local has_error=$(printf '%s' "$apod_data" | jq -r '.error // empty' 2>/dev/null)
   if [ -n "$has_error" ]; then
     return 1
   fi
 
-  # Validate we have required fields
   local title=$(printf '%s' "$apod_data" | jq -r '.title // empty' 2>/dev/null)
   if [ -z "$title" ]; then
     return 1
@@ -365,20 +361,96 @@ _fetch_apod() {
   return 0
 }
 
+###############################################################################
+# iTerm2 Inline Image Display
+###############################################################################
+
+_iterm_can_display_images() {
+  [[ "$TERM_PROGRAM" == "iTerm.app" || "$LC_TERMINAL" == "iTerm2" ]]
+}
+
+_tty_is_available() {
+  [[ -c /dev/tty ]] && [[ -w /dev/tty ]]
+}
+
+_generate_iterm_image_sequence() {
+  local image_file="$1"
+  local max_width="${2:-${GOODMORNING_IMAGE_WIDTH:-60}}"
+
+  [[ -f "$image_file" ]] || return 1
+
+  local file_size=$(wc -c < "$image_file" 2>/dev/null | tr -d ' ')
+  local encoded=$(base64 < "$image_file" | tr -d '\n')
+
+  printf '\033]1337;File=inline=1;size=%s;width=%s;preserveAspectRatio=1:%s\a' \
+    "$file_size" "$max_width" "$encoded"
+}
+
+_validate_image_file() {
+  local image_file="$1"
+
+  [[ -f "$image_file" ]] || return 1
+  [[ -s "$image_file" ]] || return 1
+
+  local file_type
+  file_type=$(file -b "$image_file" 2>/dev/null)
+
+  case "$file_type" in
+    *PNG*|*JPEG*|*GIF*|*image*|*bitmap*|*JFIF*)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+_download_image() {
+  local url="$1"
+  local output_file="$2"
+  local max_retries="${3:-2}"
+  local attempt=1
+
+  while [[ $attempt -le $max_retries ]]; do
+    curl -sL --max-time 15 "$url" -o "$output_file" 2>/dev/null
+
+    if _validate_image_file "$output_file"; then
+      return 0
+    fi
+
+    rm -f "$output_file"
+    ((attempt++))
+    sleep 1
+  done
+
+  return 1
+}
+
 _display_image_iterm() {
   local image_file="$1"
 
-  if [ ! -f "$image_file" ]; then
-    return 1
+  [[ -f "$image_file" ]] || return 1
+  _iterm_can_display_images || return 1
+
+  local sequence
+  sequence=$(_generate_iterm_image_sequence "$image_file") || return 1
+
+  if [[ -n "$GOODMORNING_IMAGE_CAPTURE_MODE" ]]; then
+    printf '%s\n' "$sequence"
+    return 0
   fi
 
-  if [[ "$TERM_PROGRAM" != "iTerm.app" ]]; then
-    return 1
+  if _tty_is_available; then
+    printf '%s\n' "$sequence" > /dev/tty
+    return 0
   fi
 
-  printf '\033]1337;File=inline=1:'
-  base64 < "$image_file"
-  printf '\a\n'
+  if [[ -n "$GOODMORNING_TERMINAL_FD" ]] && { true >&${GOODMORNING_TERMINAL_FD}; } 2>/dev/null; then
+    printf '%s\n' "$sequence" >&${GOODMORNING_TERMINAL_FD}
+    return 0
+  fi
+
+  return 1
 }
 
 show_apod() {
@@ -407,12 +479,12 @@ show_apod() {
   echo_cyan "  🌌 $(echo_green "$title")"
   echo ""
 
-  if [ "$media_type" = "image" ] && [[ "$TERM_PROGRAM" == "iTerm.app" ]]; then
+  if [ "$media_type" = "image" ]; then
     if [ ! -f "$image_file" ] || ! _is_cache_valid "$image_file"; then
-      curl -s "$url" -o "$image_file" 2>/dev/null
+      _download_image "$url" "$image_file"
     fi
 
-    if [ -f "$image_file" ]; then
+    if _iterm_can_display_images && _validate_image_file "$image_file"; then
       echo "  $(echo_yellow 'Displaying image in iTerm...')"
       echo ""
       _display_image_iterm "$image_file"
@@ -436,5 +508,87 @@ show_apod() {
   fi
 
   echo_cyan "  🔗 $display_url"
+  echo ""
+}
+
+###############################################################################
+# Cat of the Day (The Cat API)
+###############################################################################
+
+_get_cat_image_file() {
+  echo "${GOODMORNING_CONFIG_DIR}/cache/cat_of_day.jpg"
+}
+
+_get_cat_cache_file() {
+  echo "${GOODMORNING_CONFIG_DIR}/cache/cat_of_day.json"
+}
+
+_fetch_cat() {
+  local cat_cache_file="$(_get_cat_cache_file)"
+
+  if [[ -f "$cat_cache_file" ]] && _is_cache_valid "$cat_cache_file"; then
+    cat "$cat_cache_file"
+    return 0
+  fi
+
+  local api_response
+  api_response=$(curl -s --max-time 10 "https://api.thecatapi.com/v1/images/search?limit=1" 2>/dev/null)
+
+  if [[ -z "$api_response" ]]; then
+    return 1
+  fi
+
+  local image_url
+  image_url=$(printf '%s' "$api_response" | jq -r '.[0].url // empty' 2>/dev/null)
+
+  if [[ -z "$image_url" ]]; then
+    return 1
+  fi
+
+  mkdir -p "$(dirname "$cat_cache_file")"
+  printf '%s' "$api_response" | jq '.[0]' > "$cat_cache_file"
+  cat "$cat_cache_file"
+  return 0
+}
+
+show_cat_of_day() {
+  if [[ -n "$GOODMORNING_FORCE_OFFLINE" ]]; then
+    return 0
+  fi
+
+  print_section "🐱 Cat of the Day" "cyan"
+
+  local cat_image_data
+  cat_image_data=$(fetch_with_spinner "Fetching cat..." _fetch_cat)
+
+  if [[ -z "$cat_image_data" ]]; then
+    show_setup_message "$(echo_yellow '  ⚠ Could not fetch cat image')"
+    return 0
+  fi
+
+  local image_url
+  local image_width
+  local image_height
+  local cached_image_file
+
+  image_url=$(printf '%s' "$cat_image_data" | jq -r '.url' 2>/dev/null)
+  image_width=$(printf '%s' "$cat_image_data" | jq -r '.width // empty' 2>/dev/null)
+  image_height=$(printf '%s' "$cat_image_data" | jq -r '.height // empty' 2>/dev/null)
+  cached_image_file="$(_get_cat_image_file)"
+
+  if [[ ! -f "$cached_image_file" ]] || ! _is_cache_valid "$cached_image_file"; then
+    _download_image "$image_url" "$cached_image_file"
+  fi
+
+  if _iterm_can_display_images && _validate_image_file "$cached_image_file"; then
+    _display_image_iterm "$cached_image_file"
+    echo ""
+  fi
+
+  if [[ -n "$image_width" ]] && [[ -n "$image_height" ]]; then
+    echo_gray "  ${image_width}x${image_height}"
+  fi
+
+  echo_cyan "  🔗 $image_url"
   echo ""
 }

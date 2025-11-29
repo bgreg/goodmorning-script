@@ -12,6 +12,9 @@ CONFIG_FILE="$CONFIG_DIR/config.sh"
 # Source centralized color functions
 source "$SCRIPT_DIR/lib/colors.sh"
 
+# Source validation functions for --doctor mode
+source "$SCRIPT_DIR/lib/validation.sh"
+
 print_success() {
   echo_green "✓ $1"
 }
@@ -30,9 +33,22 @@ print_warning() {
 
 print_header() {
   echo ""
-  echo_cyan "========================================"
+  echo_cyan "════════════════════════════════════════"
   echo_cyan "  $1"
-  echo_cyan "========================================"
+  echo_cyan "════════════════════════════════════════"
+}
+
+section_box() {
+  local title="$1"
+  local width=50
+  local padding=$(( (width - ${#title} - 2) / 2 ))
+  local padding_right=$(( width - ${#title} - 2 - padding ))
+
+  echo ""
+  echo_yellow "┌$(printf '─%.0s' {1..50})┐"
+  echo_yellow "│$(printf ' %.0s' $(seq 1 $padding))$title$(printf ' %.0s' $(seq 1 $padding_right)) │"
+  echo_yellow "└$(printf '─%.0s' {1..50})┘"
+  echo ""
 }
 
 ###############################################################################
@@ -41,20 +57,20 @@ print_header() {
 setup_section_system() {
   local interactive="${1:-true}"
 
-  print_header "System Requirements Check"
+  print_header "🔍 System Requirements Check"
 
   if [[ "$OSTYPE" != "darwin"* ]]; then
     print_error "This script requires macOS"
     echo_yellow "Current OS: $OSTYPE"
     exit 1
   fi
-  print_success "Running on macOS"
+  print_success "Running on macOS 🍎"
 
   local missing_required=()
   local missing_optional=()
 
   echo ""
-  echo_cyan "Checking required dependencies..."
+  echo_cyan "📦 Checking required dependencies..."
 
   if ! command -v curl &> /dev/null; then
     missing_required+=("curl")
@@ -78,34 +94,41 @@ setup_section_system() {
   fi
 
   echo ""
-  echo_cyan "Checking optional dependencies..."
+  echo_cyan "🔧 Checking optional dependencies..."
 
   if ! command -v brew &> /dev/null; then
     missing_optional+=("brew")
     print_warning "Homebrew not found (recommended for updates)"
   else
-    print_success "Homebrew found"
+    print_success "Homebrew found 🍺"
   fi
 
   if ! command -v figlet &> /dev/null; then
     missing_optional+=("figlet")
     print_warning "figlet not found (needed for custom banners)"
   else
-    print_success "figlet found"
+    print_success "figlet found 🎨"
   fi
 
   if ! command -v icalBuddy &> /dev/null; then
     missing_optional+=("icalBuddy")
     print_warning "icalBuddy not found (needed for calendar/reminders)"
   else
-    print_success "icalBuddy found"
+    print_success "icalBuddy found 📅"
   fi
 
   if ! command -v claude &> /dev/null; then
     missing_optional+=("claude")
     print_warning "Claude Code not found (needed for learning tips)"
   else
-    print_success "Claude Code found"
+    print_success "Claude Code found 🤖"
+  fi
+
+  if ! command -v gh &> /dev/null; then
+    missing_optional+=("gh")
+    print_warning "GitHub CLI not found (needed for GitHub notifications)"
+  else
+    print_success "GitHub CLI found 🐙"
   fi
 
   if [ ${#missing_required[@]} -gt 0 ]; then
@@ -134,6 +157,8 @@ setup_section_system() {
     if command -v brew &> /dev/null; then
       echo ""
       echo_cyan "Install missing optional dependencies with Homebrew?"
+      echo_gray "  (y = install now, Enter/n = skip)"
+      echo ""
       echo_green -n "Install now? [y/N]: "
       read -r install_deps
 
@@ -147,6 +172,7 @@ setup_section_system() {
               echo_cyan "Install Claude Code with:"
               echo_green "  npm install -g @anthropic-ai/claude-code"
               ;;
+            "gh") brew install gh ;;
           esac
         done
       fi
@@ -160,7 +186,7 @@ setup_section_system() {
 # Section: Basic Configuration
 ###############################################################################
 setup_section_basic() {
-  print_header "Basic Configuration"
+  print_header "⚙️  Basic Configuration"
 
   local current_user_name=""
   local current_enable_tts=""
@@ -175,16 +201,19 @@ setup_section_basic() {
 
   # Config directory
   echo ""
-  echo_yellow "━━━ Configuration Directory ━━━"
+  section_box "📁 Configuration Directory"
   echo ""
   echo_blue "  Where to store your Good Morning configuration files"
   echo ""
   echo_cyan "  Default: $DEFAULT_CONFIG_DIR"
   if [ -n "$current_config_dir" ]; then
     echo_cyan "  Current: $current_config_dir"
+    echo_gray "  (Press Enter to keep current, or enter new path)"
+  else
+    echo_gray "  (Press Enter for default, or enter custom path)"
   fi
   echo ""
-  echo_green -n "  Your choice (Enter for default): "
+  echo_green -n "  Config directory: "
   read -r config_dir_input
 
   if [ -n "$config_dir_input" ]; then
@@ -200,16 +229,19 @@ setup_section_basic() {
 
   # User name
   echo ""
-  echo_yellow "━━━ Your Name ━━━"
+  section_box "👤 Your Name"
   echo ""
   echo_blue "  Used for the personalized morning greeting banner"
   echo ""
   echo_cyan "  Default: $USER"
   if [ -n "$current_user_name" ]; then
     echo_cyan "  Current: $current_user_name"
+    echo_gray "  (Press Enter to keep current, or enter new name)"
+  else
+    echo_gray "  (Press Enter for default, or enter custom name)"
   fi
   echo ""
-  echo_green -n "  Your choice: "
+  echo_green -n "  Your name: "
   read -r user_name_input
 
   if [ -n "$user_name_input" ]; then
@@ -222,7 +254,7 @@ setup_section_basic() {
 
   # Text-to-speech
   echo ""
-  echo_yellow "━━━ Text-to-Speech Greeting ━━━"
+  section_box "🔊 Text-to-Speech Greeting"
   echo ""
   echo_blue "  Audibly announce 'Good morning' using macOS text-to-speech"
   echo ""
@@ -230,6 +262,7 @@ setup_section_basic() {
   if [ "$current_enable_tts" = "true" ]; then
     echo_cyan "  Current: enabled"
   fi
+  echo_gray "  (y = enable, Enter/n = disable)"
   echo ""
   echo_green -n "  Enable text-to-speech? [y/N]: "
   read -r enable_tts_input
@@ -240,14 +273,34 @@ setup_section_basic() {
     SETUP_ENABLE_TTS="false"
   fi
 
-  print_success "Basic configuration complete"
+  # Link behavior
+  echo ""
+  section_box "🔗 Link Behavior"
+  echo ""
+  echo_blue "  How should links be handled?"
+  echo ""
+  echo_gray "  1️⃣  Display only - show clickable links in terminal"
+  echo_gray "  2️⃣  Auto-open - automatically open links in browser"
+  echo ""
+  echo_gray "  (Enter/1 = display only, 2 = auto-open)"
+  echo ""
+  echo_green -n "  Your choice [1/2]: "
+  read -r link_behavior_input
+
+  if [[ "$link_behavior_input" == "2" ]]; then
+    SETUP_AUTO_OPEN_LINKS="true"
+  else
+    SETUP_AUTO_OPEN_LINKS="false"
+  fi
+
+  print_success "Basic configuration complete ✅"
 }
 
 ###############################################################################
 # Section: Paths Configuration
 ###############################################################################
 setup_section_paths() {
-  print_header "Paths Configuration"
+  print_header "📂 Paths Configuration"
 
   local current_backup_script=""
   local current_vim_plugins_dir=""
@@ -262,15 +315,17 @@ setup_section_paths() {
 
   # Backup script
   echo ""
-  echo_yellow "━━━ Backup Script ━━━"
+  section_box "💾 Backup Script"
   echo ""
   echo_blue "  Path to a script that runs backups (e.g., Time Machine, rsync)"
   echo_blue "  Will be executed in the background during your morning routine"
   echo ""
   if [ -n "$current_backup_script" ]; then
     echo_cyan "  Current: $current_backup_script"
+    echo_gray "  (Press Enter to keep current, or enter new path)"
+  else
+    echo_gray "  (Optional - press Enter to skip)"
   fi
-  echo_gray "  (Optional - press Enter to skip)"
   echo ""
   echo_green -n "  Script path: "
   read -r backup_script_input
@@ -283,13 +338,16 @@ setup_section_paths() {
 
   # Vim plugins directory
   echo ""
-  echo_yellow "━━━ Vim Plugins Directory ━━━"
+  section_box "📝 Vim Plugins Directory"
   echo ""
   echo_blue "  Directory containing your Vim plugins for automatic updates"
   echo ""
   echo_cyan "  Default: \$HOME/.vim/pack/vendor/start"
   if [ -n "$current_vim_plugins_dir" ]; then
     echo_cyan "  Current: $current_vim_plugins_dir"
+    echo_gray "  (Press Enter to keep current, or enter new path)"
+  else
+    echo_gray "  (Press Enter for default, or enter custom path)"
   fi
   echo ""
   echo_green -n "  Directory: "
@@ -305,7 +363,7 @@ setup_section_paths() {
 
   # Project directories
   echo ""
-  echo_yellow "━━━ Project Directories ━━━"
+  section_box "📁 Project Directories"
   echo ""
   echo_blue "  Directories to scan for git repositories"
   echo_blue "  Used to check for uncommitted changes across your projects"
@@ -313,6 +371,9 @@ setup_section_paths() {
   echo_cyan "  Default: \$HOME"
   if [ -n "$current_project_dirs" ]; then
     echo_cyan "  Current: $current_project_dirs"
+    echo_gray "  (Press Enter to keep current, or enter new paths)"
+  else
+    echo_gray "  (Press Enter for default, or enter custom paths)"
   fi
   echo_gray "  (Separate multiple paths with colons)"
   echo ""
@@ -327,14 +388,14 @@ setup_section_paths() {
     SETUP_PROJECT_DIRS="\$HOME"
   fi
 
-  print_success "Paths configuration complete"
+  print_success "Paths configuration complete ✅"
 }
 
 ###############################################################################
 # Section: Learning Sources
 ###############################################################################
 setup_section_learning() {
-  print_header "Learning Sources Configuration"
+  print_header "📚 Learning Sources Configuration"
 
   echo ""
   echo_blue "  Daily Learning shows two random documentation resources:"
@@ -359,14 +420,16 @@ setup_section_learning() {
     echo ""
   fi
 
-  echo_yellow "━━━ Default Sources ━━━"
+  section_box "📋 Default Sources"
   echo ""
   echo_blue "  Use the curated default sources? Includes:"
-  echo_gray "    • Programming: PostgreSQL, Ruby, Node.js, Python, Go, Rust"
-  echo_gray "    • AI/ML: OpenAI, Anthropic, PyTorch, TensorFlow"
-  echo_gray "    • DevOps: Docker, Kubernetes, Git, Nginx, Grafana"
-  echo_gray "    • Security: OWASP, CVE Database, PortSwigger"
-  echo_gray "    • Tools: VS Code, JetBrains, Vim, Zsh"
+  echo_gray "    💻 Programming: PostgreSQL, Ruby, Node.js, Python, Go, Rust"
+  echo_gray "    🤖 AI/ML: OpenAI, Anthropic, PyTorch, TensorFlow"
+  echo_gray "    🐳 DevOps: Docker, Kubernetes, Git, Nginx, Grafana"
+  echo_gray "    🔒 Security: OWASP, CVE Database, PortSwigger"
+  echo_gray "    🛠️  Tools: VS Code, JetBrains, Vim, Zsh"
+  echo ""
+  echo_gray "  (Enter/y = use defaults, n = start empty)"
   echo ""
   echo_green -n "  Use default sources? [Y/n]: "
   read -r use_defaults
@@ -383,13 +446,15 @@ setup_section_learning() {
 
   # Add custom static URLs
   echo ""
-  echo_yellow "━━━ Add Custom Documentation Links ━━━"
+  section_box "➕ Add Custom Documentation Links"
   echo ""
   echo_blue "  Add your own documentation URLs (space-separated)"
   echo_gray "  These will be added to the static resources list"
   echo_gray "  Example: https://docs.example.com https://wiki.mycompany.com"
   echo ""
-  echo_green -n "  URLs (or Enter to skip): "
+  echo_gray "  (Enter = skip, or enter URLs separated by spaces)"
+  echo ""
+  echo_green -n "  Custom URLs: "
   read -r custom_urls
 
   if [ -n "$custom_urls" ]; then
@@ -415,15 +480,15 @@ setup_section_learning() {
   echo ""
   local final_sitemap_count=$(jq '.sitemaps | length' "$json_file" 2>/dev/null || echo "0")
   local final_static_count=$(jq '.static | length' "$json_file" 2>/dev/null || echo "0")
-  print_success "Learning sources configured: $final_sitemap_count sitemaps, $final_static_count static"
-  print_info "Edit directly: $json_file"
+  print_success "Learning sources configured: $final_sitemap_count sitemaps, $final_static_count static ✅"
+  print_info "📝 Edit directly: $json_file"
 }
 
 ###############################################################################
 # Section: Banner
 ###############################################################################
 setup_section_banner() {
-  print_header "ASCII Art Banner"
+  print_header "🎨 ASCII Art Banner"
 
   if [ -z "${SETUP_USER_NAME:-}" ]; then
     if [ -f "$CONFIG_FILE" ]; then
@@ -440,6 +505,8 @@ setup_section_banner() {
   echo ""
   echo_cyan "  Name: $SETUP_USER_NAME"
   echo_gray "  (Requires figlet to be installed)"
+  echo ""
+  echo_gray "  (y = generate banner, Enter/n = use default)"
   echo ""
   echo_green -n "  Generate custom banner? [y/N]: "
   read -r generate_banner
@@ -466,7 +533,7 @@ setup_section_banner() {
 # Section: Briefing Features
 ###############################################################################
 setup_section_features() {
-  print_header "Briefing Features"
+  print_header "✨ Briefing Features"
 
   echo ""
   echo_blue "  Choose which sections to include in your morning briefing."
@@ -481,10 +548,14 @@ setup_section_features() {
     local extra_prompt="$4"
 
     local default_display="Y/n"
-    [[ "$default" != "true" ]] && default_display="y/N"
+    local hint="(Enter/y = enable, n = disable)"
+    if [[ "$default" != "true" ]]; then
+      default_display="y/N"
+      hint="(y = enable, Enter/n = disable)"
+    fi
 
-    echo ""
-    echo_yellow "━━━ $description ━━━"
+    section_box "$description"
+    echo_gray "  $hint"
     echo ""
     echo_green -n "  Enable? [$default_display]: "
     read -r response
@@ -503,66 +574,251 @@ setup_section_features() {
     fi
   }
 
-  # Ask about each feature
-  ask_feature "SHOW_WEATHER" "Weather Forecast" "true"
-  ask_feature "SHOW_HISTORY" "On This Day in History" "true"
-  ask_feature "SHOW_TECH_VERSIONS" "Latest Tech Versions (Ruby, Rails, etc.)" "true"
-  ask_feature "SHOW_COUNTRY" "Country of the Day" "true"
-  ask_feature "SHOW_WORD" "Word of the Day" "true"
-  ask_feature "SHOW_WIKIPEDIA" "Wikipedia Featured Article" "true"
-  ask_feature "SHOW_APOD" "NASA Astronomy Picture of the Day" "true"
-  ask_feature "SHOW_CALENDAR" "Calendar Events" "true"
+  # Ask about each feature with examples
 
-  # Reminders with list name prompt
-  ask_feature "SHOW_REMINDERS" "macOS Reminders" "true" '
+  echo ""
+  section_box "🌤️ Weather Forecast"
+  echo ""
+  echo_gray "  Example output:"
+  echo_gray "    ☀️  Weather: 72°F, Sunny"
+  echo_gray "    High: 78°F  Low: 65°F"
+  echo ""
+  echo_gray "  (Enter/y = enable, n = disable)"
+  echo ""
+  echo_green -n "  Enable? [Y/n]: "
+  read -r response
+  [[ -z "$response" || "$response" =~ ^[Yy]$ ]] && SETUP_SHOW_WEATHER="true" || SETUP_SHOW_WEATHER="false"
+
+  echo ""
+  section_box "📜 On This Day in History"
+  echo ""
+  echo_gray "  Example output:"
+  echo_gray "    📅 On This Day (November 19):"
+  echo_gray "    • 1863: Lincoln delivers Gettysburg Address"
+  echo_gray "    • 1969: Apollo 12 lands on the Moon"
+  echo ""
+  echo_gray "  (Enter/y = enable, n = disable)"
+  echo ""
+  echo_green -n "  Enable? [Y/n]: "
+  read -r response
+  [[ -z "$response" || "$response" =~ ^[Yy]$ ]] && SETUP_SHOW_HISTORY="true" || SETUP_SHOW_HISTORY="false"
+
+  echo ""
+  section_box "💻 Latest Tech Versions"
+  echo ""
+  echo_gray "  Example output:"
+  echo_gray "    🔧 Latest Versions:"
+  echo_gray "    Ruby: 3.3.0  Rails: 7.1.2  Node: 21.4.0"
+  echo ""
+  echo_gray "  (Enter/y = enable, n = disable)"
+  echo ""
+  echo_green -n "  Enable? [Y/n]: "
+  read -r response
+  [[ -z "$response" || "$response" =~ ^[Yy]$ ]] && SETUP_SHOW_TECH_VERSIONS="true" || SETUP_SHOW_TECH_VERSIONS="false"
+
+  echo ""
+  section_box "🌍 Country of the Day"
+  echo ""
+  echo_gray "  Example output:"
+  echo_gray "    🌍 Country: Japan"
+  echo_gray "    Capital: Tokyo | Population: 125M"
+  echo_gray "    Notable: Has over 6,800 islands"
+  echo ""
+  echo_gray "  (Enter/y = enable, n = disable)"
+  echo ""
+  echo_green -n "  Enable? [Y/n]: "
+  read -r response
+  [[ -z "$response" || "$response" =~ ^[Yy]$ ]] && SETUP_SHOW_COUNTRY="true" || SETUP_SHOW_COUNTRY="false"
+
+  echo ""
+  section_box "📚 Word of the Day"
+  echo ""
+  echo_gray "  Example output:"
+  echo_gray "    📖 Word: Ephemeral (adj.)"
+  echo_gray "    Lasting for a very short time"
+  echo ""
+  echo_gray "  (Enter/y = enable, n = disable)"
+  echo ""
+  echo_green -n "  Enable? [Y/n]: "
+  read -r response
+  [[ -z "$response" || "$response" =~ ^[Yy]$ ]] && SETUP_SHOW_WORD="true" || SETUP_SHOW_WORD="false"
+
+  echo ""
+  section_box "📖 Wikipedia Featured Article"
+  echo ""
+  echo_gray "  Example output:"
+  echo_gray "    📚 Wikipedia: \"Golden Gate Bridge\""
+  echo_gray "    A suspension bridge spanning the Golden Gate strait..."
+  echo ""
+  echo_gray "  (Enter/y = enable, n = disable)"
+  echo ""
+  echo_green -n "  Enable? [Y/n]: "
+  read -r response
+  [[ -z "$response" || "$response" =~ ^[Yy]$ ]] && SETUP_SHOW_WIKIPEDIA="true" || SETUP_SHOW_WIKIPEDIA="false"
+
+  echo ""
+  section_box "🔭 NASA Astronomy Picture"
+  echo ""
+  echo_gray "  Example output:"
+  echo_gray "    🔭 APOD: \"Orion Nebula in Infrared\""
+  echo_gray "    https://apod.nasa.gov/apod/image/..."
+  echo ""
+  echo_gray "  (Enter/y = enable, n = disable)"
+  echo ""
+  echo_green -n "  Enable? [Y/n]: "
+  read -r response
+  [[ -z "$response" || "$response" =~ ^[Yy]$ ]] && SETUP_SHOW_APOD="true" || SETUP_SHOW_APOD="false"
+
+  echo ""
+  section_box "📅 Calendar Events"
+  echo ""
+  echo_gray "  Example output:"
+  echo_gray "    📆 Today's Events:"
+  echo_gray "    • 9:00 AM - Team standup"
+  echo_gray "    • 2:00 PM - Project review"
+  echo ""
+  echo_gray "  (Enter/y = enable, n = disable)"
+  echo ""
+  echo_green -n "  Enable? [Y/n]: "
+  read -r response
+  [[ -z "$response" || "$response" =~ ^[Yy]$ ]] && SETUP_SHOW_CALENDAR="true" || SETUP_SHOW_CALENDAR="false"
+
+  echo ""
+  section_box "✅ macOS Reminders"
+  echo ""
+  echo_gray "  Example output:"
+  echo_gray "    ✅ Reminders:"
+  echo_gray "    • Buy groceries"
+  echo_gray "    • Call dentist"
+  echo ""
+  echo_gray "  (Enter/y = enable, n = disable)"
+  echo ""
+  echo_green -n "  Enable? [Y/n]: "
+  read -r response
+  if [[ -z "$response" || "$response" =~ ^[Yy]$ ]]; then
+    SETUP_SHOW_REMINDERS="true"
     echo ""
     echo_blue "  Which reminder list should be displayed?"
-    echo_gray "  (Leave blank for all incomplete reminders)"
+    echo ""
+    echo_gray "  (Enter = show all incomplete reminders, or enter specific list name)"
     echo ""
     echo_green -n "  Reminder list name: "
     read -r SETUP_REMINDERS_LIST
-  '
-
-  ask_feature "SHOW_EMAIL" "Unread Email Summary" "true"
-  ask_feature "SHOW_LEARNING" "Daily Learning Resources" "true"
-  ask_feature "SHOW_SANITY" "Sanity Maintenance (Comics/Fun)" "true"
-  ask_feature "SHOW_TIPS" "AI Learning Tips (requires Claude)" "true"
-  ask_feature "RUN_UPDATES" "Background System Updates" "true"
-
-  # Email briefing option
-  echo ""
-  echo_yellow "━━━ Email Briefing ━━━"
-  echo ""
-  echo_blue "  Send the morning briefing to your email address"
-  echo ""
-  echo_green -n "  Enable email briefing? [y/N]: "
-  read -r email_response
-
-  if [[ $email_response =~ ^[Yy]$ ]]; then
-    SETUP_EMAIL_BRIEFING="true"
-    echo ""
-    echo_green -n "  Email address: "
-    read -r SETUP_EMAIL_RECIPIENT
-
-    echo ""
-    echo_cyan "  Default subject: Morning Briefing"
-    echo_green -n "  Custom subject (Enter for default): "
-    read -r custom_subject
-    SETUP_EMAIL_SUBJECT="${custom_subject:-Morning Briefing}"
   else
-    SETUP_EMAIL_BRIEFING="false"
-    SETUP_EMAIL_RECIPIENT=""
-    SETUP_EMAIL_SUBJECT="Morning Briefing"
+    SETUP_SHOW_REMINDERS="false"
   fi
 
-  print_success "Briefing features configured"
+  echo ""
+  section_box "🐙 GitHub Notifications"
+  echo ""
+  echo_gray "  Example output:"
+  echo_gray "    🐙 GitHub: 3 unread notifications"
+  echo_gray "    • PR review requested: feature-branch"
+  echo ""
+  echo_gray "  (Enter/y = enable, n = disable)"
+  echo ""
+  echo_green -n "  Enable? [Y/n]: "
+  read -r response
+  if [[ -z "$response" || "$response" =~ ^[Yy]$ ]]; then
+    SETUP_SHOW_GITHUB="true"
+    if ! command -v gh &> /dev/null; then
+      print_warning "GitHub CLI (gh) is not installed"
+      echo_cyan "  Install with: brew install gh"
+      echo ""
+      echo_gray "  (y = enable anyway, Enter/n = disable)"
+      echo ""
+      echo_green -n "  Continue anyway? [y/N]: "
+      read -r continue_anyway
+      if [[ ! $continue_anyway =~ ^[Yy]$ ]]; then
+        SETUP_SHOW_GITHUB="false"
+        print_info "GitHub notifications disabled"
+      fi
+    elif ! gh auth status &>/dev/null; then
+      print_warning "GitHub CLI is not authenticated"
+      echo_cyan "  Run: gh auth login"
+      echo ""
+      echo_gray "  (y = enable anyway, Enter/n = disable)"
+      echo ""
+      echo_green -n "  Continue anyway? [y/N]: "
+      read -r continue_anyway
+      if [[ ! $continue_anyway =~ ^[Yy]$ ]]; then
+        SETUP_SHOW_GITHUB="false"
+        print_info "GitHub notifications disabled"
+      fi
+    else
+      print_success "GitHub CLI installed and authenticated"
+    fi
+  else
+    SETUP_SHOW_GITHUB="false"
+  fi
+
+  echo ""
+  section_box "📚 Daily Learning Resources"
+  echo ""
+  echo_gray "  Example output:"
+  echo_gray "    📚 Learning Resources:"
+  echo_gray "    • PostgreSQL: Window Functions"
+  echo_gray "      https://postgresql.org/docs/..."
+  echo ""
+  echo_gray "  (Enter/y = enable, n = disable)"
+  echo ""
+  echo_green -n "  Enable? [Y/n]: "
+  read -r response
+  [[ -z "$response" || "$response" =~ ^[Yy]$ ]] && SETUP_SHOW_LEARNING="true" || SETUP_SHOW_LEARNING="false"
+
+  echo ""
+  section_box "🤪 Sanity Maintenance"
+  echo ""
+  echo_gray "  Example output:"
+  echo_gray "    😄 Sanity Break:"
+  echo_gray "    • XKCD: \"Standards\""
+  echo_gray "      https://xkcd.com/927/"
+  echo ""
+  echo_gray "  (Enter/y = enable, n = disable)"
+  echo ""
+  echo_green -n "  Enable? [Y/n]: "
+  read -r response
+  [[ -z "$response" || "$response" =~ ^[Yy]$ ]] && SETUP_SHOW_SANITY="true" || SETUP_SHOW_SANITY="false"
+
+  echo ""
+  section_box "🤖 AI Learning Tips"
+  echo ""
+  echo_gray "  Example output:"
+  echo_gray "    🤖 Learning Tip:"
+  echo_gray "    Use git stash to temporarily save changes"
+  echo_gray "    without committing them..."
+  echo_gray "    Source: Git Documentation"
+  echo ""
+  echo_gray "  (Requires Claude Code CLI)"
+  echo_gray "  (Enter/y = enable, n = disable)"
+  echo ""
+  echo_green -n "  Enable? [Y/n]: "
+  read -r response
+  [[ -z "$response" || "$response" =~ ^[Yy]$ ]] && SETUP_SHOW_TIPS="true" || SETUP_SHOW_TIPS="false"
+
+  echo ""
+  section_box "🔄 Background System Updates"
+  echo ""
+  echo_gray "  Example output:"
+  echo_gray "    🔄 Running background updates..."
+  echo_gray "    • Homebrew update (runs in background)"
+  echo_gray "    • Vim plugin updates"
+  echo_gray "    Notification when complete"
+  echo ""
+  echo_gray "  (Enter/y = enable, n = disable)"
+  echo ""
+  echo_green -n "  Enable? [Y/n]: "
+  read -r response
+  [[ -z "$response" || "$response" =~ ^[Yy]$ ]] && SETUP_RUN_UPDATES="true" || SETUP_RUN_UPDATES="false"
+
+  print_success "Briefing features configured ✅"
 }
 
 ###############################################################################
 # Section: Installation
 ###############################################################################
 setup_section_install() {
-  print_header "Installation"
+  print_header "🚀 Installation"
 
   mkdir -p "$INSTALL_DIR"
   mkdir -p "$CONFIG_DIR"
@@ -575,6 +831,7 @@ setup_section_install() {
 export GOODMORNING_CONFIG_DIR="${CONFIG_DIR}"
 export GOODMORNING_USER_NAME="${SETUP_USER_NAME:-\$USER}"
 export GOODMORNING_ENABLE_TTS="${SETUP_ENABLE_TTS:-false}"
+export GOODMORNING_AUTO_OPEN_LINKS="${SETUP_AUTO_OPEN_LINKS:-false}"
 export GOODMORNING_BACKUP_SCRIPT="${SETUP_BACKUP_SCRIPT:-}"
 export GOODMORNING_VIM_PLUGINS_DIR="${SETUP_VIM_PLUGINS_DIR:-\$HOME/.vim/pack/vendor/start}"
 export GOODMORNING_PROJECT_DIRS="${SETUP_PROJECT_DIRS:-\$HOME}"
@@ -592,22 +849,17 @@ export GOODMORNING_SHOW_APOD="${SETUP_SHOW_APOD:-true}"
 export GOODMORNING_SHOW_CALENDAR="${SETUP_SHOW_CALENDAR:-true}"
 export GOODMORNING_SHOW_REMINDERS="${SETUP_SHOW_REMINDERS:-true}"
 export GOODMORNING_REMINDERS_LIST="${SETUP_REMINDERS_LIST:-}"
-export GOODMORNING_SHOW_EMAIL="${SETUP_SHOW_EMAIL:-true}"
+export GOODMORNING_SHOW_GITHUB="${SETUP_SHOW_GITHUB:-true}"
 export GOODMORNING_SHOW_LEARNING="${SETUP_SHOW_LEARNING:-true}"
 export GOODMORNING_SHOW_SANITY="${SETUP_SHOW_SANITY:-true}"
 export GOODMORNING_SHOW_TIPS="${SETUP_SHOW_TIPS:-true}"
 export GOODMORNING_RUN_UPDATES="${SETUP_RUN_UPDATES:-true}"
-
-# Email briefing
-export GOODMORNING_EMAIL_BRIEFING="${SETUP_EMAIL_BRIEFING:-false}"
-export GOODMORNING_EMAIL_RECIPIENT="${SETUP_EMAIL_RECIPIENT:-}"
-export GOODMORNING_EMAIL_SUBJECT="${SETUP_EMAIL_SUBJECT:-Morning Briefing}"
 EOF
 
-  print_success "Configuration saved to $CONFIG_FILE"
+  print_success "Configuration saved to $CONFIG_FILE 💾"
 
   # Create symlinks
-  print_info "Creating symlinks in $INSTALL_DIR..."
+  print_info "🔗 Creating symlinks in $INSTALL_DIR..."
 
   for file in goodmorning.sh setup.sh; do
     local source_file="$SCRIPT_DIR/$file"
@@ -622,18 +874,18 @@ EOF
       fi
 
       ln -s "$source_file" "$target_link"
-      print_success "Symlinked $file"
+      print_success "Symlinked $file ✓"
     fi
   done
 
-  print_header "Setup Complete"
+  print_header "🎉 Setup Complete!"
 
   echo ""
   echo_cyan "To use the script, add this to your ~/.zshrc:"
   echo_green "  source $CONFIG_FILE"
   echo_green "  alias gm=\"$INSTALL_DIR/goodmorning.sh\""
   echo ""
-  echo_cyan "Or run now with: $(echo_green './setup.sh --run')"
+  echo_cyan "Or run now with: $(echo_green './setup.sh --run') 🌅"
   echo ""
 }
 
@@ -702,23 +954,23 @@ show_config() {
     exit 1
   fi
 
-  print_header "Current Configuration"
+  print_header "📋 Current Configuration"
   echo ""
 
   source "$CONFIG_FILE"
 
-  echo_cyan "Configuration file: $CONFIG_FILE"
+  echo_cyan "📁 Configuration file: $CONFIG_FILE"
   echo ""
 
-  echo_yellow "User Name:"
+  echo_yellow "👤 User Name:"
   echo "  ${GOODMORNING_USER_NAME:-\$USER}"
   echo ""
 
-  echo_yellow "Text-to-Speech:"
+  echo_yellow "🔊 Text-to-Speech:"
   echo "  ${GOODMORNING_ENABLE_TTS:-false}"
   echo ""
 
-  echo_yellow "Backup Script:"
+  echo_yellow "💾 Backup Script:"
   if [ -n "$GOODMORNING_BACKUP_SCRIPT" ]; then
     echo "  $GOODMORNING_BACKUP_SCRIPT"
   else
@@ -726,7 +978,7 @@ show_config() {
   fi
   echo ""
 
-  echo_yellow "Learning Sources:"
+  echo_yellow "📚 Learning Sources:"
   local json_file="${GOODMORNING_CONFIG_DIR:-$CONFIG_DIR}/learning-sources.json"
   if [ -f "$json_file" ]; then
     local sitemap_count=$(jq '.sitemaps | length' "$json_file" 2>/dev/null || echo "0")
@@ -745,33 +997,40 @@ run_goodmorning() {
     run_interactive_setup
   fi
 
-  print_header "Running Good Morning Script"
+  print_header "🌅 Running Good Morning Script"
   source "$CONFIG_FILE"
   exec "$SCRIPT_DIR/goodmorning.sh"
 }
 
 show_usage() {
-  echo_cyan "Good Morning Script Setup"
+  echo_cyan "☀️  Good Morning Script Setup"
   echo ""
-  echo_yellow "Usage:"
+  echo_yellow "📋 Usage:"
   echo "  ./setup.sh                    Run full interactive setup"
   echo "  ./setup.sh --section <name>   Configure only one section"
   echo "  ./setup.sh --run              Run setup (if needed) then execute"
   echo "  ./setup.sh --reconfigure      Force re-running full setup"
   echo "  ./setup.sh --show-config      Display current configuration"
+  echo "  ./setup.sh --doctor           Run comprehensive system diagnostics"
   echo "  ./setup.sh --help             Show this help message"
   echo ""
-  echo_yellow "Sections:"
-  echo "  system   - Check system requirements and dependencies"
-  echo "  basic    - User name, TTS, config directory"
-  echo "  paths    - Backup script, vim plugins, project directories"
-  echo "  learning - Learning sources (sitemaps and static URLs)"
-  echo "  banner   - ASCII art banner generation"
-  echo "  install  - Write config file and create symlinks"
+  echo_yellow "📦 Sections:"
+  echo "  system   - 🔍 Check system requirements and dependencies"
+  echo "  basic    - ⚙️  User name, TTS, config directory"
+  echo "  paths    - 📂 Backup script, vim plugins, project directories"
+  echo "  learning - 📚 Learning sources (sitemaps and static URLs)"
+  echo "  banner   - 🎨 ASCII art banner generation"
+  echo "  install  - 🚀 Write config file and create symlinks"
   echo ""
-  echo_yellow "Examples:"
+  echo_yellow "🩺 Diagnostics:"
+  echo "  --doctor      Comprehensive system validation and diagnostics"
+  echo ""
+  echo_yellow "💡 Examples:"
   echo_green "  ./setup.sh --section learning"
   echo "    Configure only learning sources"
+  echo ""
+  echo_green "  ./setup.sh --doctor"
+  echo "    Validate system configuration and dependencies"
   echo ""
   echo_green "  ./setup.sh --section banner"
   echo "    Regenerate ASCII art banner"
@@ -801,6 +1060,10 @@ case "$1" in
     ;;
   --regenerate-banner)
     setup_section_banner
+    ;;
+  --doctor)
+    run_doctor "$SCRIPT_DIR" "$CONFIG_DIR"
+    exit $?
     ;;
   --section)
     if [ -z "$2" ]; then
