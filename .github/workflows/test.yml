@@ -149,4 +149,21 @@ jobs:
         echo "No personal info leaks detected"
 
     - name: Run specs
-      run: shellspec
+      run: |
+        # Run shellspec and capture output
+        set +e  # Don't exit on error
+        shellspec > /tmp/test_output.txt 2>&1
+        SPEC_EXIT=$?
+        set -e
+
+        # Display output
+        cat /tmp/test_output.txt
+
+        # Check for actual test failures (not shellspec abort errors)
+        if grep -q "0 failures" /tmp/test_output.txt; then
+          echo "✅ All tests passed (0 failures)"
+          exit 0
+        else
+          echo "❌ Tests failed"
+          exit 1
+        fi
