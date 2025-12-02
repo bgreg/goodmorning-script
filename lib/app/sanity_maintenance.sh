@@ -18,7 +18,7 @@
 ###############################################################################
 
 # Source shared sitemap utilities
-source "${SCRIPT_DIR}/lib/sitemap.sh"
+source "${SCRIPT_DIR}/lib/app/sitemap.sh"
 
 # Internal function to fetch XKCD data (called by _fetch_random_xkcd_with_spinner)
 _fetch_xkcd_data() {

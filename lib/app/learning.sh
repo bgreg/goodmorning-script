@@ -15,7 +15,7 @@
 ###############################################################################
 
 # Source shared sitemap utilities
-source "${SCRIPT_DIR}/lib/sitemap.sh"
+source "${SCRIPT_DIR}/lib/app/sitemap.sh"
 
 # Display a sitemap-based learning resource
 _show_sitemap_resource() {
