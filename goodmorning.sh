@@ -65,6 +65,19 @@ if [ -f "$SCRIPT_DIR/lib/core.sh" ]; then
   source "$SCRIPT_DIR/lib/core.sh"
 fi
 
+# Source preflight checks
+if [ -f "$SCRIPT_DIR/lib/preflight/environment.sh" ]; then
+  source "$SCRIPT_DIR/lib/preflight/environment.sh"
+fi
+
+if [ -f "$SCRIPT_DIR/lib/preflight/network.sh" ]; then
+  source "$SCRIPT_DIR/lib/preflight/network.sh"
+fi
+
+if [ -f "$SCRIPT_DIR/lib/preflight/tools.sh" ]; then
+  source "$SCRIPT_DIR/lib/preflight/tools.sh"
+fi
+
 if [ -f "$SCRIPT_DIR/lib/updates.sh" ]; then
   source "$SCRIPT_DIR/lib/updates.sh"
 fi
@@ -195,28 +208,51 @@ _setup_output_history() {
 }
 
 main() {
-  # Parse command line arguments
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
-      --noisy)
-        export GOODMORNING_ENABLE_TTS=true
-        shift
-        ;;
-      --help|-h)
-        echo "Usage: goodmorning.sh [OPTIONS]"
-        echo ""
-        echo "Options:"
-        echo "  --noisy    Enable text-to-speech greeting"
-        echo "  --help     Show this help message"
-        return 0
-        ;;
-      *)
-        echo "Unknown option: $1"
-        echo "Use --help for usage information"
-        return 1
-        ;;
-    esac
-  done
+  # Load zsh utilities module for zparseopts
+  zmodload zsh/zutil
+
+  # Parse command line arguments using zparseopts
+  local -A opts
+  zparseopts -D -E -A opts -- \
+    h -help \
+    -noisy \
+    -doctor \
+    -offline
+
+  # Handle help
+  if [[ -n "${opts[--help]}" || -n "${opts[-h]}" ]]; then
+    echo "Usage: goodmorning.sh [OPTIONS]"
+    echo ""
+    echo "Options:"
+    echo "  --noisy     Enable text-to-speech greeting"
+    echo "  --doctor    Run system diagnostics and validation"
+    echo "  --offline   Run in offline mode (skip network features)"
+    echo "  -h, --help  Show this help message"
+    return 0
+  fi
+
+  # Handle doctor mode
+  if [[ -n "${opts[--doctor]}" ]]; then
+    # Source validation for doctor functions
+    if [ -f "$SCRIPT_DIR/lib/validation.sh" ]; then
+      source "$SCRIPT_DIR/lib/validation.sh"
+      run_doctor
+      return $?
+    else
+      echo "Error: Doctor mode requires validation.sh" >&2
+      return 1
+    fi
+  fi
+
+  # Handle offline mode
+  if [[ -n "${opts[--offline]}" ]]; then
+    export GOODMORNING_FORCE_OFFLINE=true
+  fi
+
+  # Handle TTS mode
+  if [[ -n "${opts[--noisy]}" ]]; then
+    export GOODMORNING_ENABLE_TTS=true
+  fi
 
   # Initialize logging
   mkdir -p "$LOGS_DIR" 2>/dev/null
@@ -238,7 +274,29 @@ main() {
   iterm_set_title "Good Morning - $(date '+%a %b %d')"
   iterm_set_badge "Good Morning\n$(date +%H:%M)"
 
-  check_dependencies || exit 1
+  # Run preflight checks
+  if ! check_os; then
+    echo_error "This script requires macOS"
+    exit 1
+  fi
+
+  if ! check_shell; then
+    echo_error "This script requires zsh"
+    exit 1
+  fi
+
+  if ! check_directories; then
+    echo_error "Required directories not accessible"
+    exit 1
+  fi
+
+  if ! check_required_tools >/dev/null 2>&1; then
+    echo_error "Missing required tools. Run with --doctor for details."
+    exit 1
+  fi
+
+  # Check network (non-fatal)
+  check_internet
 
   [[ "$RUN_UPDATES" == "true" ]] && start_background_updates
   show_banner
