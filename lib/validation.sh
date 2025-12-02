@@ -184,16 +184,16 @@ validate_sitemap() {
 ###############################################################################
 validate_api_key() {
   local api_type="$1"
-  local api_key="$2"
+  local key_value="$2"
   local timeout="${3:-10}"
 
-  if [[ -z "$api_key" ]]; then
+  if [[ -z "$key_value" ]]; then
     return 1
   fi
 
   case "$api_type" in
     weather|openweathermap)
-      local test_url="https://api.openweathermap.org/data/2.5/weather?q=London&appid=$api_key"
+      local test_url="https://api.openweathermap.org/data/2.5/weather?q=London&appid=$key_value"
       local response
       response=$(curl -s --connect-timeout "$timeout" "$test_url" 2>/dev/null)
       if echo "$response" | grep -q '"cod":200' 2>/dev/null; then
