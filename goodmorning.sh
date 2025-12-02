@@ -119,6 +119,18 @@ if [ -f "$SCRIPT_DIR/lib/sections/cat_of_day.sh" ]; then
   source "$SCRIPT_DIR/lib/sections/cat_of_day.sh"
 fi
 
+if [ -f "$SCRIPT_DIR/lib/sections/alias_suggestions.sh" ]; then
+  source "$SCRIPT_DIR/lib/sections/alias_suggestions.sh"
+fi
+
+if [ -f "$SCRIPT_DIR/lib/sections/common_typos.sh" ]; then
+  source "$SCRIPT_DIR/lib/sections/common_typos.sh"
+fi
+
+if [ -f "$SCRIPT_DIR/lib/sections/system_info.sh" ]; then
+  source "$SCRIPT_DIR/lib/sections/system_info.sh"
+fi
+
 if [ -f "$SCRIPT_DIR/lib/sanity_maintenance.sh" ]; then
   source "$SCRIPT_DIR/lib/sanity_maintenance.sh"
 fi
