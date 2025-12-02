@@ -293,6 +293,15 @@ main() {
   echo "Good Morning - $(date)" >> "$LOG_FILE"
   echo "========================================" >> "$LOG_FILE"
 
+  # Setup signal handlers for graceful exit on Ctrl+C
+  _cleanup_and_exit() {
+    echo ""
+    echo_yellow "Interrupted by user. Cleaning up..."
+    iterm_set_badge ""
+    exit 130  # Standard exit code for SIGINT (128 + 2)
+  }
+  trap _cleanup_and_exit INT TERM
+
   # Setup output history
   _setup_output_history
 
