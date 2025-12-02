@@ -101,6 +101,34 @@ iterm_set_title() {
   fi
 }
 
+iterm_create_status_badge() {
+  local mail_count=0
+  local reminder_count=0
+  local calendar_count=0
+
+  # Count unread mail (silent, non-blocking)
+  if osascript "$SCRIPT_DIR/lib/app/apple_script/count_mail.scpt" &>/dev/null; then
+    mail_count=$(osascript "$SCRIPT_DIR/lib/app/apple_script/count_mail.scpt" 2>/dev/null || echo "0")
+    [[ "$mail_count" =~ ^[0-9]+$ ]] || mail_count=0
+  fi
+
+  # Count incomplete reminders (silent, non-blocking)
+  if osascript "$SCRIPT_DIR/lib/app/apple_script/count_reminders.scpt" &>/dev/null; then
+    reminder_count=$(osascript "$SCRIPT_DIR/lib/app/apple_script/count_reminders.scpt" 2>/dev/null || echo "0")
+    [[ "$reminder_count" =~ ^[0-9]+$ ]] || reminder_count=0
+  fi
+
+  # Count today's calendar events (silent, non-blocking)
+  if osascript "$SCRIPT_DIR/lib/app/apple_script/count_calendar.scpt" &>/dev/null; then
+    calendar_count=$(osascript "$SCRIPT_DIR/lib/app/apple_script/count_calendar.scpt" 2>/dev/null || echo "0")
+    [[ "$calendar_count" =~ ^[0-9]+$ ]] || calendar_count=0
+  fi
+
+  # Create badge with counts (using blue/green theme)
+  local badge_text="📧 $mail_count  ✅ $reminder_count  📅 $calendar_count"
+  echo "$badge_text"
+}
+
 ###############################################################################
 # Output Helpers
 ###############################################################################

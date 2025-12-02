@@ -303,9 +303,10 @@ main() {
   # Capture all output to history file while still displaying to terminal
   exec > >(tee -a "$OUTPUT_HISTORY_FILE") 2>&1
 
-  # iTerm2: Set window title and badge
+  # iTerm2: Set window title and badge with status counts
   iterm_set_title "Good Morning - $(date '+%a %b %d')"
-  iterm_set_badge "Good Morning\n$(date +%H:%M)"
+  local badge_status=$(iterm_create_status_badge)
+  iterm_set_badge "$badge_status"
 
   # Run preflight checks
   if ! check_os; then

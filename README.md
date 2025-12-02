@@ -39,22 +39,33 @@
 
 ## Architecture
 
-The script follows a modular, domain-driven architecture:
+The script follows a modular, domain-driven architecture organized into runtime and setup modules:
 
-- **lib/sections/** - Feature modules with explicit dependency declarations
+**Runtime Modules (lib/app/):**
+- **sections/** - Feature modules with explicit dependency declarations
   - Daily content: country, word, Wikipedia, astronomy, cat
   - Shell analysis: alias suggestions, typo detection
   - System info: macOS version, uptime, disk, memory, battery
-- **lib/preflight/** - Environment validation (OS, shell, tools, network)
-- **lib/core.sh** - Core utilities, iTerm2 integration, spinners, image display
-- **lib/view_helpers.sh** - Shared display utilities
-- **lib/apple_script/** - Modular AppleScript integrations
+- **preflight/** - Environment validation (OS, shell, tools, network)
+- **core.sh** - Core utilities, iTerm2 integration (badges, marks, notifications), spinners, image display
+- **view_helpers.sh** - Shared display utilities
+- **apple_script/** - Modular AppleScript integrations (Mail, Calendar, Reminders counts)
+
+**Setup/Diagnostic Modules (lib/setup/):**
+- **doctor.sh** - Comprehensive system diagnostics (14 validation checks)
+- **validation_helpers.sh** - Reusable validation functions
 
 Each section declares its dependencies:
 ```zsh
 SECTION_DEPS_TOOLS=(curl jq)      # Required CLI tools
 SECTION_DEPS_NETWORK=true         # Requires internet connectivity
 ```
+
+**iTerm2 Integration:**
+- Window badges show live counts: 📧 Mail ✅ Reminders 📅 Calendar
+- Section marks for easy navigation (Cmd+Shift+Up/Down)
+- Inline image display for APOD and cat photos
+- Native macOS notifications
 
 ## What Does It Look Like?
 
