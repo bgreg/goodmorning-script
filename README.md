@@ -37,6 +37,25 @@
 - Modular AppleScript organization for better maintainability
 - Optional completion callback for custom post-processing
 
+## Architecture
+
+The script follows a modular, domain-driven architecture:
+
+- **lib/sections/** - Feature modules with explicit dependency declarations
+  - Daily content: country, word, Wikipedia, astronomy, cat
+  - Shell analysis: alias suggestions, typo detection
+  - System info: macOS version, uptime, disk, memory, battery
+- **lib/preflight/** - Environment validation (OS, shell, tools, network)
+- **lib/core.sh** - Core utilities, iTerm2 integration, spinners, image display
+- **lib/view_helpers.sh** - Shared display utilities
+- **lib/apple_script/** - Modular AppleScript integrations
+
+Each section declares its dependencies:
+```zsh
+SECTION_DEPS_TOOLS=(curl jq)      # Required CLI tools
+SECTION_DEPS_NETWORK=true         # Requires internet connectivity
+```
+
 ## What Does It Look Like?
 
 When you run the script, you'll see a formatted terminal output with:
