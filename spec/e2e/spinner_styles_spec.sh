@@ -191,16 +191,16 @@ Describe 'E2E Spinner Styles Tests'
     End
   End
 
-  Describe '_select_random_spinner_style function'
+  Describe 'select_random_spinner_style function'
     It 'is defined'
-      When call type _select_random_spinner_style
+      When call type select_random_spinner_style
       The status should be success
       The output should include "function"
     End
 
     It 'sets SELECTED_SPINNER_STYLE when called'
       unset SELECTED_SPINNER_STYLE
-      When call _select_random_spinner_style
+      When call select_random_spinner_style
       The variable SELECTED_SPINNER_STYLE should be defined
       The status should be success
     End
@@ -208,7 +208,7 @@ Describe 'E2E Spinner Styles Tests'
     It 'selects a valid style from the available list'
       check_valid_selection() {
         unset SELECTED_SPINNER_STYLE
-        _select_random_spinner_style
+        select_random_spinner_style
 
         local found=0
         for style_name in "${SPINNER_STYLE_NAMES[@]}"; do
@@ -227,14 +227,14 @@ Describe 'E2E Spinner Styles Tests'
     It 'populates SELECTED_SPINNER_CHARS array'
       unset SELECTED_SPINNER_STYLE
       unset SELECTED_SPINNER_CHARS
-      _select_random_spinner_style
+      select_random_spinner_style
       The variable SELECTED_SPINNER_CHARS should be defined
     End
 
     It 'populates SELECTED_SPINNER_BACKSPACES'
       unset SELECTED_SPINNER_STYLE
       unset SELECTED_SPINNER_BACKSPACES
-      _select_random_spinner_style
+      select_random_spinner_style
       The variable SELECTED_SPINNER_BACKSPACES should be defined
     End
   End
