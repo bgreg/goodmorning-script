@@ -12,20 +12,10 @@
 # All features include caching and offline mode support
 ###############################################################################
 
-###############################################################################
-# Helper Functions
-###############################################################################
-
-_safe_display() {
-  local value="$1"
-  local fallback="${2:-N/A}"
-
-  if [ -z "$value" ] || [ "$value" = "null" ]; then
-    echo "$fallback"
-  else
-    echo "$value"
-  fi
-}
+# Source view helpers
+if [ -f "$SCRIPT_DIR/lib/view_helpers.sh" ]; then
+  source "$SCRIPT_DIR/lib/view_helpers.sh"
+fi
 
 ###############################################################################
 # Country of the Day
@@ -209,8 +199,8 @@ show_word_of_day() {
   local example=$(printf '%s' "$word_data" | jq -r '.example' 2>/dev/null)
 
   # Validate we have content
-  word=$(_safe_display "$word" "")
-  definition=$(_safe_display "$definition" "")
+  word=$(safe_display "$word" "")
+  definition=$(safe_display "$definition" "")
 
   if [ -z "$word" ] || [ -z "$definition" ]; then
     show_setup_message "$(echo_yellow '  ⚠ Word data unavailable')"
@@ -218,21 +208,21 @@ show_word_of_day() {
   fi
 
   echo ""
-  phonetic=$(_safe_display "$phonetic" "")
+  phonetic=$(safe_display "$phonetic" "")
   if [ -n "$phonetic" ]; then
     echo_cyan "  📖 $(echo_green "$word") $(echo_gray "$phonetic")"
   else
     echo_cyan "  📖 $(echo_green "$word")"
   fi
 
-  part_of_speech=$(_safe_display "$part_of_speech" "")
+  part_of_speech=$(safe_display "$part_of_speech" "")
   if [ -n "$part_of_speech" ]; then
     echo_gray "     $part_of_speech"
   fi
   echo ""
   echo "  $definition" | fold -s -w 70 | sed 's/^/  /'
 
-  example=$(_safe_display "$example" "")
+  example=$(safe_display "$example" "")
   if [ -n "$example" ] && [ "$example" != "N/A" ]; then
     echo ""
     echo_gray "  Example: \"$example\""
@@ -293,9 +283,9 @@ show_wikipedia_featured() {
   local url=$(printf '%s' "$article_data" | jq -r '.tfa.content_urls.desktop.page' 2>/dev/null)
 
   # Check if we got valid data
-  title=$(_safe_display "$title" "")
-  extract=$(_safe_display "$extract" "")
-  url=$(_safe_display "$url" "")
+  title=$(safe_display "$title" "")
+  extract=$(safe_display "$extract" "")
+  url=$(safe_display "$url" "")
 
   if [ -z "$title" ] && [ -z "$extract" ]; then
     show_setup_message "$(echo_yellow '  ⚠ Wikipedia article data unavailable')"

@@ -14,9 +14,17 @@ _cleanup() {
   local file
   local pid
 
+  # Guard: Only clean up files in /tmp or /private/tmp to prevent accidents
   for file in "${TEMP_FILES[@]}"; do
+    # Validate file path before deletion
+    if [[ ! "$file" =~ ^/tmp/ ]] && [[ ! "$file" =~ ^/private/tmp/ ]] && [[ ! "$file" =~ ^/var/tmp/ ]]; then
+      echo "Warning: Skipping cleanup of file outside temp directory: $file" >> "$LOG_FILE" 2>&1
+      continue
+    fi
+
     if [ -f "$file" ]; then
-      rm -f "$file" 2>> "$LOG_FILE"
+      # Use rm without -f to respect file permissions and get errors
+      rm "$file" 2>> "$LOG_FILE" || true
     fi
   done
 
@@ -28,7 +36,7 @@ _cleanup() {
 }
 
 # when the script exits or is interrupted, run cleanup
-trap _cleanup EXIT INT TERM
+trap cleanup_temp_files EXIT INT TERM
 
 ###############################################################################
 # Status Message Helpers
@@ -50,7 +58,7 @@ echo_warning() {
 # iTerm2 Integration
 ###############################################################################
 
-_iterm_mark() {
+iterm_mark() {
   if [[ "$TERM_PROGRAM" == "iTerm.app" || "$LC_TERMINAL" == "iTerm2" ]]; then
     if [[ -w /dev/tty ]]; then
       printf '\033]1337;SetMark\a' > /dev/tty
@@ -60,7 +68,7 @@ _iterm_mark() {
   fi
 }
 
-_iterm_notify() {
+iterm_notify() {
   local message="$1"
   if [[ "$TERM_PROGRAM" == "iTerm.app" || "$LC_TERMINAL" == "iTerm2" ]]; then
     if [[ -w /dev/tty ]]; then
@@ -71,7 +79,7 @@ _iterm_notify() {
   fi
 }
 
-_iterm_set_badge() {
+iterm_set_badge() {
   local badge_text="$1"
   if [[ "$TERM_PROGRAM" == "iTerm.app" || "$LC_TERMINAL" == "iTerm2" ]]; then
     local encoded
@@ -84,7 +92,7 @@ _iterm_set_badge() {
   fi
 }
 
-_iterm_set_title() {
+iterm_set_title() {
   local title="$1"
   if [[ -w /dev/tty ]]; then
     printf '\033]0;%s\a' "$title" > /dev/tty
@@ -101,7 +109,7 @@ print_section() {
   local title="$1"
   local color="${2:-cyan}"
 
-  _iterm_mark
+  iterm_mark
   echo_${color} "========================================"
   echo_${color} "  ${title}"
   echo_${color} "========================================"
@@ -122,7 +130,7 @@ show_setup_message() {
   fi
 }
 
-_check_dependencies() {
+check_dependencies() {
   local missing_critical=()
 
   if ! command_exists git; then
@@ -142,7 +150,7 @@ _check_dependencies() {
   return 0
 }
 
-_safe_source() {
+safe_source() {
   local script_path="$1"
 
   if [ ! -f "$script_path" ]; then
@@ -214,7 +222,7 @@ typeset -g SELECTED_SPINNER_STYLE=""
 typeset -ga SELECTED_SPINNER_CHARS
 typeset -g SELECTED_SPINNER_BACKSPACES=2
 
-_select_random_spinner_style() {
+select_random_spinner_style() {
   if [[ -n "$SELECTED_SPINNER_STYLE" ]]; then
     return 0
   fi
@@ -230,7 +238,7 @@ _select_random_spinner_style() {
   export SELECTED_SPINNER_STYLE
 }
 
-_select_random_spinner_style
+select_random_spinner_style
 
 run_with_spinner() {
   local message="$1"

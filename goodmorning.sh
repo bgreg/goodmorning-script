@@ -235,10 +235,10 @@ main() {
   exec > >(tee -a "$OUTPUT_HISTORY_FILE") 2>&1
 
   # iTerm2: Set window title and badge
-  _iterm_set_title "Good Morning - $(date '+%a %b %d')"
-  _iterm_set_badge "Good Morning\n$(date +%H:%M)"
+  iterm_set_title "Good Morning - $(date '+%a %b %d')"
+  iterm_set_badge "Good Morning\n$(date +%H:%M)"
 
-  _check_dependencies || exit 1
+  check_dependencies || exit 1
 
   [[ "$RUN_UPDATES" == "true" ]] && start_background_updates
   show_banner
@@ -264,7 +264,7 @@ main() {
 
   if [ -n "$COMPLETION_CALLBACK" ]; then
     print_section "Completion Callback"
-    _safe_source "$COMPLETION_CALLBACK" || echo_warning "Completion callback failed"
+    safe_source "$COMPLETION_CALLBACK" || echo_warning "Completion callback failed"
     echo ""
   fi
 
@@ -272,8 +272,8 @@ main() {
   echo_gray "Output saved: ${OUTPUT_HISTORY_FILE}"
 
   # iTerm2: Send completion notification and clear badge
-  _iterm_notify "Good Morning briefing complete"
-  _iterm_set_badge ""
+  iterm_notify "Good Morning briefing complete"
+  iterm_set_badge ""
 }
 
 # Run when the file is sourced, unless we want to load the file and test things.

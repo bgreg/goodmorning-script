@@ -16,6 +16,7 @@ COLOR_YELLOW=$ESC_SEQ"33;01m"
 COLOR_BLUE=$ESC_SEQ"34;01m"
 COLOR_MAGENTA=$ESC_SEQ"35;01m"
 COLOR_CYAN=$ESC_SEQ"36;01m"
+COLOR_WHITE=$ESC_SEQ"37;01m"
 COLOR_GRAY=$ESC_SEQ"90m"
 
 ###############################################################################
@@ -77,6 +78,15 @@ echo_cyan() {
     echo -en "${COLOR_CYAN}$*${COLOR_RESET}"
   else
     echo -e "${COLOR_CYAN}$*${COLOR_RESET}"
+  fi
+}
+
+echo_white() {
+  if [[ "$1" == "-n" ]]; then
+    shift
+    echo -en "${COLOR_WHITE}$*${COLOR_RESET}"
+  else
+    echo -e "${COLOR_WHITE}$*${COLOR_RESET}"
   fi
 }
 

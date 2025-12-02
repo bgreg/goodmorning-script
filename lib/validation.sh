@@ -13,6 +13,11 @@ if [[ -z "$COLOR_RESET" ]]; then
   source "$SCRIPT_DIR/colors.sh" 2>/dev/null || true
 fi
 
+# Source view helpers
+if [ -f "$SCRIPT_DIR/view_helpers.sh" ]; then
+  source "$SCRIPT_DIR/view_helpers.sh"
+fi
+
 # Validation counters (global for summary)
 typeset -g VALIDATION_PASSED=0
 typeset -g VALIDATION_FAILED=0
@@ -24,21 +29,10 @@ validation_reset_counters() {
   VALIDATION_WARNED=0
 }
 
-_truncate_validation_message() {
-  local full_message="$1"
-  local max_length="${2:-48}"
-
-  if [[ ${#full_message} -gt $max_length ]]; then
-    echo "${full_message:0:$max_length}.."
-  else
-    echo "$full_message"
-  fi
-}
-
 validation_pass() {
   local check_description="$1"
   local truncated_description
-  truncated_description=$(_truncate_validation_message "$check_description")
+  truncated_description=$(truncate_string "$check_description")
 
   printf "  %-50s " "$truncated_description"
   echo "💚"
@@ -49,7 +43,7 @@ validation_fail() {
   local check_description="$1"
   local failure_detail="${2:-}"
   local truncated_description
-  truncated_description=$(_truncate_validation_message "$check_description")
+  truncated_description=$(truncate_string "$check_description")
 
   printf "  %-50s " "$truncated_description"
   echo -n "💔"
@@ -65,7 +59,7 @@ validation_warn() {
   local check_description="$1"
   local warning_detail="${2:-}"
   local truncated_description
-  truncated_description=$(_truncate_validation_message "$check_description")
+  truncated_description=$(truncate_string "$check_description")
 
   printf "  %-50s " "$truncated_description"
   echo_yellow -n "⚠"

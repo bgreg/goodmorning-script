@@ -4,27 +4,27 @@
 Describe 'lib/core.sh - Core Utilities'
   Before 'source_goodmorning'
 
-  Describe '_cleanup function'
+  Describe 'cleanup_temp_files function'
     It 'is defined'
-      When call type _cleanup
+      When call type cleanup_temp_files
       The status should be success
       The output should not be blank
     End
 
     It 'handles empty TEMP_FILES array'
       TEMP_FILES=()
-      When call _cleanup
+      When call cleanup_temp_files
       The status should be success
     End
 
     It 'handles empty BACKGROUND_PIDS array'
       BACKGROUND_PIDS=()
-      When call _cleanup
+      When call cleanup_temp_files
       The status should be success
     End
   End
 
-  Describe '_safe_source function'
+  Describe 'safe_source function'
     setup() {
       TEST_DIR=$(mktemp -d)
       VALID_FILE="$TEST_DIR/valid.sh"
@@ -49,30 +49,30 @@ Describe 'lib/core.sh - Core Utilities'
     After 'cleanup'
 
     It 'is defined'
-      When call type _safe_source
+      When call type safe_source
       The status should be success
       The output should not be blank
     End
 
     It 'rejects missing files'
-      When call _safe_source "$MISSING_FILE"
+      When call safe_source "$MISSING_FILE"
       The status should be failure
       The stderr should not be blank
     End
 
     It 'rejects world-writable files'
-      When call _safe_source "$WORLD_WRITABLE"
+      When call safe_source "$WORLD_WRITABLE"
       The status should be failure
       The stderr should include "Security"
     End
 
     It 'successfully sources valid files'
-      When call _safe_source "$VALID_FILE"
+      When call safe_source "$VALID_FILE"
       The status should be success
     End
 
     It 'loads variables from sourced file'
-      _safe_source "$VALID_FILE" >/dev/null 2>&1
+      safe_source "$VALID_FILE" >/dev/null 2>&1
       The variable TEST_VAR should equal "loaded"
     End
   End
