@@ -6,8 +6,8 @@
 # Or with real validation: SHELLSPEC_REAL=1 shellspec spec/e2e/spinner_styles_spec.sh
 
 Describe 'E2E Spinner Styles Tests'
-  Include lib/colors.sh
-  Include lib/core.sh
+  Include lib/app/colors.sh
+  Include lib/app/core.sh
 
   setup() {
     RESULTS_DIR=$(mktemp -d)

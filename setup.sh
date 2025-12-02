@@ -10,7 +10,7 @@ CONFIG_DIR="${GOODMORNING_CONFIG_DIR:-$DEFAULT_CONFIG_DIR}"
 CONFIG_FILE="$CONFIG_DIR/config.sh"
 
 # Source centralized color functions
-source "$SCRIPT_DIR/lib/colors.sh"
+source "$SCRIPT_DIR/lib/app/colors.sh"
 
 # Source validation functions for --doctor mode
 source "$SCRIPT_DIR/lib/validation.sh"

@@ -1,8 +1,8 @@
 #!/usr/bin/env zsh
 #shellspec shell=zsh
 
-Describe 'lib/colors.sh - Color System'
-  Include lib/colors.sh
+Describe 'lib/app/colors.sh - Color System'
+  Include lib/app/colors.sh
 
   Describe 'ANSI escape sequences'
     It 'defines ESC_SEQ'

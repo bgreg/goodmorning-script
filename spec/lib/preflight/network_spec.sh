@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 
-Describe 'lib/preflight/network.sh - Network Checks'
-  Include lib/preflight/network.sh
+Describe 'lib/app/preflight/network.sh - Network Checks'
+  Include lib/app/preflight/network.sh
 
   Describe 'check_internet function'
     It 'is defined'

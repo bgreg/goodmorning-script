@@ -57,86 +57,86 @@ else
   fi
 fi
 
-if [ -f "$SCRIPT_DIR/lib/colors.sh" ]; then
-  source "$SCRIPT_DIR/lib/colors.sh"
+if [ -f "$SCRIPT_DIR/lib/app/colors.sh" ]; then
+  source "$SCRIPT_DIR/lib/app/colors.sh"
 fi
 
-if [ -f "$SCRIPT_DIR/lib/core.sh" ]; then
-  source "$SCRIPT_DIR/lib/core.sh"
+if [ -f "$SCRIPT_DIR/lib/app/core.sh" ]; then
+  source "$SCRIPT_DIR/lib/app/core.sh"
 fi
 
 # Source preflight checks
-if [ -f "$SCRIPT_DIR/lib/preflight/environment.sh" ]; then
-  source "$SCRIPT_DIR/lib/preflight/environment.sh"
+if [ -f "$SCRIPT_DIR/lib/app/preflight/environment.sh" ]; then
+  source "$SCRIPT_DIR/lib/app/preflight/environment.sh"
 fi
 
-if [ -f "$SCRIPT_DIR/lib/preflight/network.sh" ]; then
-  source "$SCRIPT_DIR/lib/preflight/network.sh"
+if [ -f "$SCRIPT_DIR/lib/app/preflight/network.sh" ]; then
+  source "$SCRIPT_DIR/lib/app/preflight/network.sh"
 fi
 
-if [ -f "$SCRIPT_DIR/lib/preflight/tools.sh" ]; then
-  source "$SCRIPT_DIR/lib/preflight/tools.sh"
+if [ -f "$SCRIPT_DIR/lib/app/preflight/tools.sh" ]; then
+  source "$SCRIPT_DIR/lib/app/preflight/tools.sh"
 fi
 
-if [ -f "$SCRIPT_DIR/lib/updates.sh" ]; then
-  source "$SCRIPT_DIR/lib/updates.sh"
+if [ -f "$SCRIPT_DIR/lib/app/updates.sh" ]; then
+  source "$SCRIPT_DIR/lib/app/updates.sh"
 fi
 
-if [ -f "$SCRIPT_DIR/lib/display.sh" ]; then
-  source "$SCRIPT_DIR/lib/display.sh"
+if [ -f "$SCRIPT_DIR/lib/app/display.sh" ]; then
+  source "$SCRIPT_DIR/lib/app/display.sh"
 fi
 
-if [ -f "$SCRIPT_DIR/lib/learning.sh" ]; then
-  source "$SCRIPT_DIR/lib/learning.sh"
+if [ -f "$SCRIPT_DIR/lib/app/learning.sh" ]; then
+  source "$SCRIPT_DIR/lib/app/learning.sh"
 fi
 
-if [ -f "$SCRIPT_DIR/lib/versions.sh" ]; then
-  source "$SCRIPT_DIR/lib/versions.sh"
+if [ -f "$SCRIPT_DIR/lib/app/versions.sh" ]; then
+  source "$SCRIPT_DIR/lib/app/versions.sh"
 fi
 
-if [ -f "$SCRIPT_DIR/lib/view_helpers.sh" ]; then
-  source "$SCRIPT_DIR/lib/view_helpers.sh"
+if [ -f "$SCRIPT_DIR/lib/app/view_helpers.sh" ]; then
+  source "$SCRIPT_DIR/lib/app/view_helpers.sh"
 fi
 
 # Source daily content sections
-if [ -f "$SCRIPT_DIR/lib/sections/country_of_day.sh" ]; then
-  source "$SCRIPT_DIR/lib/sections/country_of_day.sh"
+if [ -f "$SCRIPT_DIR/lib/app/sections/country_of_day.sh" ]; then
+  source "$SCRIPT_DIR/lib/app/sections/country_of_day.sh"
 fi
 
-if [ -f "$SCRIPT_DIR/lib/sections/word_of_day.sh" ]; then
-  source "$SCRIPT_DIR/lib/sections/word_of_day.sh"
+if [ -f "$SCRIPT_DIR/lib/app/sections/word_of_day.sh" ]; then
+  source "$SCRIPT_DIR/lib/app/sections/word_of_day.sh"
 fi
 
-if [ -f "$SCRIPT_DIR/lib/sections/wikipedia_featured.sh" ]; then
-  source "$SCRIPT_DIR/lib/sections/wikipedia_featured.sh"
+if [ -f "$SCRIPT_DIR/lib/app/sections/wikipedia_featured.sh" ]; then
+  source "$SCRIPT_DIR/lib/app/sections/wikipedia_featured.sh"
 fi
 
-if [ -f "$SCRIPT_DIR/lib/sections/astronomy_picture.sh" ]; then
-  source "$SCRIPT_DIR/lib/sections/astronomy_picture.sh"
+if [ -f "$SCRIPT_DIR/lib/app/sections/astronomy_picture.sh" ]; then
+  source "$SCRIPT_DIR/lib/app/sections/astronomy_picture.sh"
 fi
 
-if [ -f "$SCRIPT_DIR/lib/sections/cat_of_day.sh" ]; then
-  source "$SCRIPT_DIR/lib/sections/cat_of_day.sh"
+if [ -f "$SCRIPT_DIR/lib/app/sections/cat_of_day.sh" ]; then
+  source "$SCRIPT_DIR/lib/app/sections/cat_of_day.sh"
 fi
 
-if [ -f "$SCRIPT_DIR/lib/sections/alias_suggestions.sh" ]; then
-  source "$SCRIPT_DIR/lib/sections/alias_suggestions.sh"
+if [ -f "$SCRIPT_DIR/lib/app/sections/alias_suggestions.sh" ]; then
+  source "$SCRIPT_DIR/lib/app/sections/alias_suggestions.sh"
 fi
 
-if [ -f "$SCRIPT_DIR/lib/sections/common_typos.sh" ]; then
-  source "$SCRIPT_DIR/lib/sections/common_typos.sh"
+if [ -f "$SCRIPT_DIR/lib/app/sections/common_typos.sh" ]; then
+  source "$SCRIPT_DIR/lib/app/sections/common_typos.sh"
 fi
 
-if [ -f "$SCRIPT_DIR/lib/sections/system_info.sh" ]; then
-  source "$SCRIPT_DIR/lib/sections/system_info.sh"
+if [ -f "$SCRIPT_DIR/lib/app/sections/system_info.sh" ]; then
+  source "$SCRIPT_DIR/lib/app/sections/system_info.sh"
 fi
 
-if [ -f "$SCRIPT_DIR/lib/sanity_maintenance.sh" ]; then
-  source "$SCRIPT_DIR/lib/sanity_maintenance.sh"
+if [ -f "$SCRIPT_DIR/lib/app/sanity_maintenance.sh" ]; then
+  source "$SCRIPT_DIR/lib/app/sanity_maintenance.sh"
 fi
 
-if [ -f "$SCRIPT_DIR/lib/github.sh" ]; then
-  source "$SCRIPT_DIR/lib/github.sh"
+if [ -f "$SCRIPT_DIR/lib/app/github.sh" ]; then
+  source "$SCRIPT_DIR/lib/app/github.sh"
 fi
 
 # ZSH default pattern, assigns the left side of := only if not already set

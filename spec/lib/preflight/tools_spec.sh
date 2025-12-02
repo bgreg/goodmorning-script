@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 
-Describe 'lib/preflight/tools.sh - Tool Checks'
-  Include lib/preflight/tools.sh
+Describe 'lib/app/preflight/tools.sh - Tool Checks'
+  Include lib/app/preflight/tools.sh
 
   Describe 'check_required_tools function'
     It 'is defined'

@@ -10,12 +10,12 @@
 # Ensure colors are available
 if [[ -z "$COLOR_RESET" ]]; then
   SCRIPT_DIR="${0:a:h:h}"
-  source "$SCRIPT_DIR/colors.sh" 2>/dev/null || true
+  source "$SCRIPT_DIR/app/colors.sh" 2>/dev/null || true
 fi
 
 # Source view helpers
-if [ -f "$SCRIPT_DIR/view_helpers.sh" ]; then
-  source "$SCRIPT_DIR/view_helpers.sh"
+if [ -f "$SCRIPT_DIR/app/view_helpers.sh" ]; then
+  source "$SCRIPT_DIR/app/view_helpers.sh"
 fi
 
 # Validation counters (global for summary)

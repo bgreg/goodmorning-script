@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 #shellspec shell=zsh
 
-Describe 'lib/core.sh - Core Utilities'
+Describe 'lib/app/core.sh - Core Utilities'
   Before 'source_goodmorning'
 
   Describe 'cleanup_temp_files function'

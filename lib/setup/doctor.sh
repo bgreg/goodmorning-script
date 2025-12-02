@@ -11,11 +11,11 @@
 SCRIPT_DIR="${SCRIPT_DIR:-${0:a:h:h}}"
 
 if [[ -z "$COLOR_RESET" ]]; then
-  source "$SCRIPT_DIR/colors.sh" 2>/dev/null || true
+  source "$SCRIPT_DIR/app/colors.sh" 2>/dev/null || true
 fi
 
-if [ -f "$SCRIPT_DIR/view_helpers.sh" ]; then
-  source "$SCRIPT_DIR/view_helpers.sh"
+if [ -f "$SCRIPT_DIR/app/view_helpers.sh" ]; then
+  source "$SCRIPT_DIR/app/view_helpers.sh"
 fi
 
 if [ -f "$SCRIPT_DIR/setup/validation_helpers.sh" ]; then

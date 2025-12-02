@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 #shellspec shell=zsh
 
-Describe 'lib/display.sh - Display Functions'
+Describe 'lib/app/display.sh - Display Functions'
   Before 'source_goodmorning'
 
   Describe 'show_banner function'
@@ -12,7 +12,7 @@ Describe 'lib/display.sh - Display Functions'
     End
 
     It 'checks for BANNER_FILE'
-      When call grep 'BANNER_FILE' "$PROJECT_ROOT/lib/display.sh"
+      When call grep 'BANNER_FILE' "$PROJECT_ROOT/lib/app/display.sh"
       The status should be success
       The output should not be blank
     End
@@ -26,19 +26,19 @@ Describe 'lib/display.sh - Display Functions'
     End
 
     It 'uses extracted AppleScript for reminder count'
-      When call grep 'apple_script/count_reminders.scpt' "$PROJECT_ROOT/lib/display.sh"
+      When call grep 'apple_script/count_reminders.scpt' "$PROJECT_ROOT/lib/app/display.sh"
       The status should be success
       The output should not be blank
     End
 
     It 'validates reminder count is numeric'
-      When call grep '\[\[.*reminder_count.*\^\[0-9\]' "$PROJECT_ROOT/lib/display.sh"
+      When call grep '\[\[.*reminder_count.*\^\[0-9\]' "$PROJECT_ROOT/lib/app/display.sh"
       The status should be success
       The output should not be blank
     End
 
     It 'respects MAX_REMINDERS limit'
-      When call grep 'MAX_REMINDERS' "$PROJECT_ROOT/lib/display.sh"
+      When call grep 'MAX_REMINDERS' "$PROJECT_ROOT/lib/app/display.sh"
       The status should be success
       The output should not be blank
     End
@@ -60,7 +60,7 @@ Describe 'lib/display.sh - Display Functions'
     End
 
     It 'respects MAX_HISTORY_EVENTS limit'
-      When call grep 'MAX_HISTORY_EVENTS' "$PROJECT_ROOT/lib/display.sh"
+      When call grep 'MAX_HISTORY_EVENTS' "$PROJECT_ROOT/lib/app/display.sh"
       The status should be success
       The output should not be blank
     End
@@ -74,7 +74,7 @@ Describe 'lib/display.sh - Display Functions'
     End
 
     It 'supports icalBuddy integration'
-      When call grep 'icalBuddy' "$PROJECT_ROOT/lib/display.sh"
+      When call grep 'icalBuddy' "$PROJECT_ROOT/lib/app/display.sh"
       The status should be success
       The output should not be blank
     End
@@ -96,13 +96,13 @@ Describe 'lib/display.sh - Display Functions'
     End
 
     It 'reads from shell history'
-      When call grep 'HISTFILE' "$PROJECT_ROOT/lib/display.sh"
+      When call grep 'HISTFILE' "$PROJECT_ROOT/lib/app/display.sh"
       The status should be success
       The output should not be blank
     End
 
     It 'checks for existing aliases'
-      When call grep 'alias.*grep' "$PROJECT_ROOT/lib/display.sh"
+      When call grep 'alias.*grep' "$PROJECT_ROOT/lib/app/display.sh"
       The status should be success
       The output should not be blank
     End
@@ -116,13 +116,13 @@ Describe 'lib/display.sh - Display Functions'
     End
 
     It 'has typo corrections mapping'
-      When call grep 'typo_corrections' "$PROJECT_ROOT/lib/display.sh"
+      When call grep 'typo_corrections' "$PROJECT_ROOT/lib/app/display.sh"
       The status should be success
       The output should not be blank
     End
 
     It 'includes common git typo'
-      When call grep '\[gti\]="git"' "$PROJECT_ROOT/lib/display.sh"
+      When call grep '\[gti\]="git"' "$PROJECT_ROOT/lib/app/display.sh"
       The status should be success
       The output should not be blank
     End
@@ -136,13 +136,13 @@ Describe 'lib/display.sh - Display Functions'
     End
 
     It 'uses Cat API'
-      When call grep 'thecatapi.com' "$PROJECT_ROOT/lib/sections/cat_of_day.sh"
+      When call grep 'thecatapi.com' "$PROJECT_ROOT/lib/app/sections/cat_of_day.sh"
       The status should be success
       The output should not be blank
     End
 
     It 'supports iTerm2 image display'
-      When call grep 'display_image_iterm' "$PROJECT_ROOT/lib/core.sh"
+      When call grep 'display_image_iterm' "$PROJECT_ROOT/lib/app/core.sh"
       The status should be success
       The output should not be blank
     End

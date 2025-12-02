@@ -1,11 +1,11 @@
 #!/usr/bin/env zsh
 #shellspec shell=zsh
 
-Describe 'lib/sanity_maintenance.sh - Sanity Maintenance System'
-  Include lib/colors.sh
-  Include lib/core.sh
+Describe 'lib/app/sanity_maintenance.sh - Sanity Maintenance System'
+  Include lib/app/colors.sh
+  Include lib/app/core.sh
   Include lib/sitemap.sh
-  Include lib/sanity_maintenance.sh
+  Include lib/app/sanity_maintenance.sh
 
   Describe 'show_sanity_maintenance function'
     setup() {

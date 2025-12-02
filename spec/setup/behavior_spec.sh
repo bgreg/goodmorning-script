@@ -6,7 +6,7 @@
 
 Describe 'setup.sh'
   # Load dependencies
-  Include lib/colors.sh
+  Include lib/app/colors.sh
 
   Describe 'Color Output System'
     Describe 'echo_green'
@@ -285,13 +285,13 @@ EOF
       The status should be success
     End
 
-    It 'lib/colors.sh has valid syntax'
-      When call zsh -n ./lib/colors.sh
+    It 'lib/app/colors.sh has valid syntax'
+      When call zsh -n ./lib/app/colors.sh
       The status should be success
     End
 
-    It 'lib/colors.sh is sourceable'
-      When call source ./lib/colors.sh
+    It 'lib/app/colors.sh is sourceable'
+      When call source ./lib/app/colors.sh
       The status should be success
     End
   End

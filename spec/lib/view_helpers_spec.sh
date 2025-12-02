@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 
-Describe 'lib/view_helpers.sh - View Helper Functions'
-  Include lib/view_helpers.sh
+Describe 'lib/app/view_helpers.sh - View Helper Functions'
+  Include lib/app/view_helpers.sh
 
   Describe 'safe_display function'
     It 'returns fallback for null value'

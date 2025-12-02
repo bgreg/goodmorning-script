@@ -2,7 +2,7 @@
 #shellspec shell=zsh
 
 Describe 'setup.sh - Interactive Prompts'
-  Include lib/colors.sh
+  Include lib/app/colors.sh
 
   Describe 'Color helper -n flag support'
     It 'echo_green -n outputs without trailing newline'

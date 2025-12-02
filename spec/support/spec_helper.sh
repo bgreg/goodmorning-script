@@ -58,7 +58,7 @@ say_was_called() {
 
 # Test helper: Load color functions
 load_colors() {
-  if [ -f "lib/colors.sh" ]; then
-    source "lib/colors.sh"
+  if [ -f "lib/app/colors.sh" ]; then
+    source "lib/app/colors.sh"
   fi
 }

@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 #shellspec shell=zsh
 
-Describe 'lib/core.sh - iTerm2 Image Display'
+Describe 'lib/app/core.sh - iTerm2 Image Display'
   Before 'source_goodmorning'
 
   Include "$SHELLSPEC_PROJECT_ROOT/spec/support/image_helpers.sh"

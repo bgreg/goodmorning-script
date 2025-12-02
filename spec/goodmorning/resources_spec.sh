@@ -12,13 +12,13 @@ Describe 'goodmorning.sh - Resource Management'
     End
 
     It 'uses secure temp file patterns'
-      When call grep 'mktemp' ./lib/updates.sh
+      When call grep 'mktemp' ./lib/app/updates.sh
       The status should be success
       The output should include "mktemp"
     End
 
     It 'temp files use XXXXXX pattern'
-      When call grep 'PATTERN' ./lib/updates.sh
+      When call grep 'PATTERN' ./lib/app/updates.sh
       The status should be success
       The output should include "PATTERN"
     End
@@ -26,13 +26,13 @@ Describe 'goodmorning.sh - Resource Management'
 
   Describe 'Temp file tracking'
     It 'defines TEMP_FILES array'
-      When call grep "TEMP_FILES" ./lib/core.sh
+      When call grep "TEMP_FILES" ./lib/app/core.sh
       The status should be success
       The output should include "TEMP_FILES"
     End
 
     It 'temp files are tracked'
-      When call grep "TEMP_FILES" ./lib/core.sh
+      When call grep "TEMP_FILES" ./lib/app/core.sh
       The status should be success
       The output should include "TEMP_FILES"
     End
@@ -40,13 +40,13 @@ Describe 'goodmorning.sh - Resource Management'
 
   Describe 'Background process management'
     It 'defines BACKGROUND_PIDS array'
-      When call grep "BACKGROUND_PIDS" ./lib/core.sh
+      When call grep "BACKGROUND_PIDS" ./lib/app/core.sh
       The status should be success
       The output should include "BACKGROUND_PIDS"
     End
 
     It 'background PIDs are tracked'
-      When call grep "BACKGROUND_PIDS" ./lib/core.sh
+      When call grep "BACKGROUND_PIDS" ./lib/app/core.sh
       The status should be success
       The output should include "BACKGROUND_PIDS"
     End
@@ -54,21 +54,21 @@ Describe 'goodmorning.sh - Resource Management'
 
   Describe 'Trap handlers'
     It 'sets up EXIT trap'
-      When call grep -E 'trap.*_cleanup.*EXIT' "lib/core.sh"
+      When call grep -E 'trap.*_cleanup.*EXIT' "lib/app/core.sh"
       The status should be success
       The output should include "trap"
       The output should include "EXIT"
     End
 
     It 'sets up INT trap'
-      When call grep -E 'trap.*_cleanup.*INT' "lib/core.sh"
+      When call grep -E 'trap.*_cleanup.*INT' "lib/app/core.sh"
       The status should be success
       The output should include "trap"
       The output should include "INT"
     End
 
     It 'sets up TERM trap'
-      When call grep -E 'trap.*_cleanup.*TERM' "./lib/core.sh"
+      When call grep -E 'trap.*_cleanup.*TERM' "./lib/app/core.sh"
       The status should be success
       The output should include "trap"
       The output should include "TERM"
@@ -84,25 +84,25 @@ Describe 'goodmorning.sh - Resource Management'
     End
 
     It 'handles temp file cleanup'
-      When call grep "TEMP_FILES" ./lib/core.sh
+      When call grep "TEMP_FILES" ./lib/app/core.sh
       The status should be success
       The output should include "TEMP_FILES"
     End
 
     It 'handles background PID cleanup'
-      When call grep "BACKGROUND_PIDS" ./lib/core.sh
+      When call grep "BACKGROUND_PIDS" ./lib/app/core.sh
       The status should be success
       The output should include "BACKGROUND_PIDS"
     End
 
     It 'removes temp files'
-      When call grep "TEMP_FILES" ./lib/core.sh
+      When call grep "TEMP_FILES" ./lib/app/core.sh
       The status should be success
       The output should include "TEMP_FILES"
     End
 
     It 'kills background processes'
-      When call grep "BACKGROUND_PIDS" ./lib/core.sh
+      When call grep "BACKGROUND_PIDS" ./lib/app/core.sh
       The status should be success
       The output should include "BACKGROUND_PIDS"
     End

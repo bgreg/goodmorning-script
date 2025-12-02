@@ -11,8 +11,8 @@ Describe 'setup.sh - Input Validation'
     End
 
     It 'sources color library for output formatting'
-      # setup.sh sources lib/colors.sh for formatted output
-      When call grep 'source.*lib/colors.sh' ./setup.sh
+      # setup.sh sources lib/app/colors.sh for formatted output
+      When call grep 'source.*lib/app/colors.sh' ./setup.sh
       The status should be success
       The output should not be blank
     End

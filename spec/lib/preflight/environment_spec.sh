@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 
-Describe 'lib/preflight/environment.sh - Environment Checks'
-  Include lib/preflight/environment.sh
+Describe 'lib/app/preflight/environment.sh - Environment Checks'
+  Include lib/app/preflight/environment.sh
 
   Describe 'check_os function'
     It 'passes on macOS'
