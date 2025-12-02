@@ -38,8 +38,7 @@ show_system_info() {
     echo "  Disk: $disk_info"
   fi
 
-  # Memory usage
-  # Convert VM stats from pages to GB (page_size=4096, bytes_per_gb=1073741824)
+  # Memory usage (convert VM pages to gigabytes)
   local mem_info=$(vm_stat 2>/dev/null | awk '
     /Pages free/ {free=$3}
     /Pages active/ {active=$3}
@@ -48,8 +47,8 @@ show_system_info() {
     /Pages wired/ {wired=$3}
     END {
       gsub(/\./, "", free); gsub(/\./, "", active); gsub(/\./, "", inactive); gsub(/\./, "", spec); gsub(/\./, "", wired)
-      page_size = 4096
-      bytes_per_gb = 1073741824
+      page_size = 2 * 2048
+      bytes_per_gb = 1024 * 1024 * 1024
       used = (active + wired) * page_size / bytes_per_gb
       total = (free + active + inactive + spec + wired) * page_size / bytes_per_gb
       printf "%.1fGB used of %.1fGB", used, total
