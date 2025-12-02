@@ -94,8 +94,29 @@ if [ -f "$SCRIPT_DIR/lib/versions.sh" ]; then
   source "$SCRIPT_DIR/lib/versions.sh"
 fi
 
-if [ -f "$SCRIPT_DIR/lib/daily_content.sh" ]; then
-  source "$SCRIPT_DIR/lib/daily_content.sh"
+if [ -f "$SCRIPT_DIR/lib/view_helpers.sh" ]; then
+  source "$SCRIPT_DIR/lib/view_helpers.sh"
+fi
+
+# Source daily content sections
+if [ -f "$SCRIPT_DIR/lib/sections/country_of_day.sh" ]; then
+  source "$SCRIPT_DIR/lib/sections/country_of_day.sh"
+fi
+
+if [ -f "$SCRIPT_DIR/lib/sections/word_of_day.sh" ]; then
+  source "$SCRIPT_DIR/lib/sections/word_of_day.sh"
+fi
+
+if [ -f "$SCRIPT_DIR/lib/sections/wikipedia_featured.sh" ]; then
+  source "$SCRIPT_DIR/lib/sections/wikipedia_featured.sh"
+fi
+
+if [ -f "$SCRIPT_DIR/lib/sections/astronomy_picture.sh" ]; then
+  source "$SCRIPT_DIR/lib/sections/astronomy_picture.sh"
+fi
+
+if [ -f "$SCRIPT_DIR/lib/sections/cat_of_day.sh" ]; then
+  source "$SCRIPT_DIR/lib/sections/cat_of_day.sh"
 fi
 
 if [ -f "$SCRIPT_DIR/lib/sanity_maintenance.sh" ]; then

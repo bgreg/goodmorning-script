@@ -10,7 +10,7 @@
 # - Visual feedback (spinner) for long-running operations
 ###############################################################################
 
-_cleanup() {
+cleanup_temp_files() {
   local file
   local pid
 
@@ -374,4 +374,96 @@ fetch_with_spinner() {
 
   rm -f "$temp_file"
   return $exit_code
+}
+
+###############################################################################
+# iTerm2 Inline Image Display
+###############################################################################
+
+iterm_can_display_images() {
+  [[ "$TERM_PROGRAM" == "iTerm.app" || "$LC_TERMINAL" == "iTerm2" ]]
+}
+
+tty_is_available() {
+  [[ -c /dev/tty ]] && [[ -w /dev/tty ]]
+}
+
+generate_iterm_image_sequence() {
+  local image_file="$1"
+  local max_width="${2:-${GOODMORNING_IMAGE_WIDTH:-60}}"
+
+  [[ -f "$image_file" ]] || return 1
+
+  local file_size=$(wc -c < "$image_file" 2>/dev/null | tr -d ' ')
+  local encoded=$(base64 < "$image_file" | tr -d '\n')
+
+  printf '\033]1337;File=inline=1;size=%s;width=%s;preserveAspectRatio=1:%s\a' \
+    "$file_size" "$max_width" "$encoded"
+}
+
+validate_image_file() {
+  local image_file="$1"
+
+  [[ -f "$image_file" ]] || return 1
+  [[ -s "$image_file" ]] || return 1
+
+  local file_type
+  file_type=$(file -b "$image_file" 2>/dev/null)
+
+  case "$file_type" in
+    *PNG*|*JPEG*|*GIF*|*image*|*bitmap*|*JFIF*)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+download_image() {
+  local url="$1"
+  local output_file="$2"
+  local max_retries="${3:-2}"
+  local attempt=1
+
+  while [[ $attempt -le $max_retries ]]; do
+    curl -sL --max-time 15 "$url" -o "$output_file" 2>/dev/null
+
+    if validate_image_file "$output_file"; then
+      return 0
+    fi
+
+    rm -f "$output_file"
+    ((attempt++))
+    sleep 1
+  done
+
+  return 1
+}
+
+display_image_iterm() {
+  local image_file="$1"
+
+  [[ -f "$image_file" ]] || return 1
+  iterm_can_display_images || return 1
+
+  local sequence
+  sequence=$(generate_iterm_image_sequence "$image_file") || return 1
+
+  if [[ -n "$GOODMORNING_IMAGE_CAPTURE_MODE" ]]; then
+    printf '%s\n' "$sequence"
+    return 0
+  fi
+
+  if tty_is_available; then
+    printf '%s\n' "$sequence" > /dev/tty
+    return 0
+  fi
+
+  if [[ -n "$GOODMORNING_TERMINAL_FD" ]] && { true >&${GOODMORNING_TERMINAL_FD}; } 2>/dev/null; then
+    printf '%s\n' "$sequence" >&${GOODMORNING_TERMINAL_FD}
+    return 0
+  fi
+
+  return 1
 }

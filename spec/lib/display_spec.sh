@@ -136,13 +136,13 @@ Describe 'lib/display.sh - Display Functions'
     End
 
     It 'uses Cat API'
-      When call grep 'thecatapi.com' "$PROJECT_ROOT/lib/daily_content.sh"
+      When call grep 'thecatapi.com' "$PROJECT_ROOT/lib/sections/cat_of_day.sh"
       The status should be success
       The output should not be blank
     End
 
     It 'supports iTerm2 image display'
-      When call grep 'imgcat\|1337;File=' "$PROJECT_ROOT/lib/daily_content.sh"
+      When call grep 'display_image_iterm' "$PROJECT_ROOT/lib/core.sh"
       The status should be success
       The output should not be blank
     End

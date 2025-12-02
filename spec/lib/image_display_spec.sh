@@ -1,22 +1,22 @@
 #!/usr/bin/env zsh
 #shellspec shell=zsh
 
-Describe 'lib/daily_content.sh - iTerm2 Image Display'
+Describe 'lib/core.sh - iTerm2 Image Display'
   Before 'source_goodmorning'
 
   Include "$SHELLSPEC_PROJECT_ROOT/spec/support/image_helpers.sh"
 
-  Describe '_iterm_can_display_images'
+  Describe 'iterm_can_display_images'
     It 'returns true for iTerm.app'
       export TERM_PROGRAM="iTerm.app"
-      When call _iterm_can_display_images
+      When call iterm_can_display_images
       The status should be success
       unset TERM_PROGRAM
     End
 
     It 'returns true for LC_TERMINAL=iTerm2'
       export LC_TERMINAL="iTerm2"
-      When call _iterm_can_display_images
+      When call iterm_can_display_images
       The status should be success
       unset LC_TERMINAL
     End
@@ -24,13 +24,13 @@ Describe 'lib/daily_content.sh - iTerm2 Image Display'
     It 'returns false for other terminals'
       export TERM_PROGRAM="Apple_Terminal"
       export LC_TERMINAL=""
-      When call _iterm_can_display_images
+      When call iterm_can_display_images
       The status should be failure
       unset TERM_PROGRAM LC_TERMINAL
     End
   End
 
-  Describe '_generate_iterm_image_sequence'
+  Describe 'generate_iterm_image_sequence'
     setup_test_image() {
       TEST_IMAGE=$(create_test_image "/tmp/shellspec_test_image_$$.png")
     }
@@ -43,25 +43,25 @@ Describe 'lib/daily_content.sh - iTerm2 Image Display'
     After 'cleanup_test_image'
 
     It 'generates escape sequence for valid image'
-      When call _generate_iterm_image_sequence "$TEST_IMAGE"
+      When call generate_iterm_image_sequence "$TEST_IMAGE"
       The status should be success
       The output should start with $'\033]1337;File='
       The output should include 'inline=1'
     End
 
     It 'fails for nonexistent file'
-      When call _generate_iterm_image_sequence "/nonexistent/file.jpg"
+      When call generate_iterm_image_sequence "/nonexistent/file.jpg"
       The status should be failure
     End
 
     It 'includes size parameter'
-      When call _generate_iterm_image_sequence "$TEST_IMAGE"
+      When call generate_iterm_image_sequence "$TEST_IMAGE"
       The output should match pattern '*size=*'
     End
 
     It 'ends with BEL terminator (hex check)'
       check_bel_terminator() {
-        local seq=$(_generate_iterm_image_sequence "$TEST_IMAGE")
+        local seq=$(generate_iterm_image_sequence "$TEST_IMAGE")
         local last_byte=$(printf '%s' "$seq" | tail -c 1 | xxd -p)
         [[ "$last_byte" == "07" ]]
       }
@@ -71,7 +71,7 @@ Describe 'lib/daily_content.sh - iTerm2 Image Display'
 
     It 'has no embedded newlines in base64'
       check_no_newlines() {
-        local seq=$(_generate_iterm_image_sequence "$TEST_IMAGE")
+        local seq=$(generate_iterm_image_sequence "$TEST_IMAGE")
         local payload="${seq#*:}"
         payload="${payload%$'\a'*}"
         [[ "$payload" != *$'\n'* ]]
@@ -82,7 +82,7 @@ Describe 'lib/daily_content.sh - iTerm2 Image Display'
 
     It 'contains valid base64 that decodes to image'
       check_valid_payload() {
-        local seq=$(_generate_iterm_image_sequence "$TEST_IMAGE")
+        local seq=$(generate_iterm_image_sequence "$TEST_IMAGE")
         local payload="${seq#*:}"
         payload="${payload%$'\a'*}"
         local temp_file=$(mktemp)
@@ -99,7 +99,7 @@ Describe 'lib/daily_content.sh - iTerm2 Image Display'
 
     It 'has exactly one OSC marker'
       check_single_osc() {
-        local seq=$(_generate_iterm_image_sequence "$TEST_IMAGE")
+        local seq=$(generate_iterm_image_sequence "$TEST_IMAGE")
         local count=$(count_osc_markers "$seq")
         [[ "$count" -eq 1 ]]
       }
@@ -109,7 +109,7 @@ Describe 'lib/daily_content.sh - iTerm2 Image Display'
 
     It 'has exactly one BEL terminator'
       check_single_bel() {
-        local seq=$(_generate_iterm_image_sequence "$TEST_IMAGE")
+        local seq=$(generate_iterm_image_sequence "$TEST_IMAGE")
         local count=$(count_bel_terminators "$seq")
         [[ "$count" -eq 1 ]]
       }
@@ -119,7 +119,7 @@ Describe 'lib/daily_content.sh - iTerm2 Image Display'
 
     It 'has correct boundary bytes (ESC ] at start, BEL at end)'
       check_boundaries() {
-        local seq=$(_generate_iterm_image_sequence "$TEST_IMAGE")
+        local seq=$(generate_iterm_image_sequence "$TEST_IMAGE")
         validate_sequence_boundaries "$seq"
       }
       When call check_boundaries
@@ -128,7 +128,7 @@ Describe 'lib/daily_content.sh - iTerm2 Image Display'
 
     It 'base64 payload contains only valid characters'
       check_base64_charset() {
-        local seq=$(_generate_iterm_image_sequence "$TEST_IMAGE")
+        local seq=$(generate_iterm_image_sequence "$TEST_IMAGE")
         validate_base64_charset "$seq"
       }
       When call check_base64_charset
@@ -137,7 +137,7 @@ Describe 'lib/daily_content.sh - iTerm2 Image Display'
 
     It 'size parameter matches actual file size'
       check_size_param() {
-        local seq=$(_generate_iterm_image_sequence "$TEST_IMAGE")
+        local seq=$(generate_iterm_image_sequence "$TEST_IMAGE")
         validate_size_parameter_matches_file "$seq" "$TEST_IMAGE"
       }
       When call check_size_param
@@ -146,7 +146,7 @@ Describe 'lib/daily_content.sh - iTerm2 Image Display'
 
     It 'round-trip decode matches original file'
       check_round_trip() {
-        local seq=$(_generate_iterm_image_sequence "$TEST_IMAGE")
+        local seq=$(generate_iterm_image_sequence "$TEST_IMAGE")
         validate_round_trip_integrity "$seq" "$TEST_IMAGE"
       }
       When call check_round_trip
@@ -155,7 +155,7 @@ Describe 'lib/daily_content.sh - iTerm2 Image Display'
 
     It 'has single colon separator between params and data'
       check_colon_separator() {
-        local seq=$(_generate_iterm_image_sequence "$TEST_IMAGE")
+        local seq=$(generate_iterm_image_sequence "$TEST_IMAGE")
         validate_single_colon_separator "$seq"
       }
       When call check_colon_separator
@@ -164,7 +164,7 @@ Describe 'lib/daily_content.sh - iTerm2 Image Display'
 
     It 'contains width parameter'
       check_width_param() {
-        local seq=$(_generate_iterm_image_sequence "$TEST_IMAGE")
+        local seq=$(generate_iterm_image_sequence "$TEST_IMAGE")
         [[ "$seq" == *"width="* ]]
       }
       When call check_width_param
@@ -173,7 +173,7 @@ Describe 'lib/daily_content.sh - iTerm2 Image Display'
 
     It 'contains preserveAspectRatio parameter'
       check_aspect_ratio_param() {
-        local seq=$(_generate_iterm_image_sequence "$TEST_IMAGE")
+        local seq=$(generate_iterm_image_sequence "$TEST_IMAGE")
         [[ "$seq" == *"preserveAspectRatio="* ]]
       }
       When call check_aspect_ratio_param
@@ -182,8 +182,8 @@ Describe 'lib/daily_content.sh - iTerm2 Image Display'
 
     It 'produces identical output on repeated calls (idempotency)'
       check_idempotency() {
-        local seq1=$(_generate_iterm_image_sequence "$TEST_IMAGE")
-        local seq2=$(_generate_iterm_image_sequence "$TEST_IMAGE")
+        local seq1=$(generate_iterm_image_sequence "$TEST_IMAGE")
+        local seq2=$(generate_iterm_image_sequence "$TEST_IMAGE")
         [[ "$seq1" == "$seq2" ]]
       }
       When call check_idempotency
@@ -191,7 +191,7 @@ Describe 'lib/daily_content.sh - iTerm2 Image Display'
     End
   End
 
-  Describe '_display_image_iterm with capture mode'
+  Describe 'display_image_iterm with capture mode'
     setup() {
       TEST_IMAGE=$(create_test_image "/tmp/shellspec_capture_test_$$.png")
       mock_iterm_environment
@@ -207,7 +207,7 @@ Describe 'lib/daily_content.sh - iTerm2 Image Display'
 
     It 'outputs escape sequence in capture mode'
       export GOODMORNING_IMAGE_CAPTURE_MODE=1
-      When call _display_image_iterm "$TEST_IMAGE"
+      When call display_image_iterm "$TEST_IMAGE"
       The status should be success
       The output should start with $'\033]1337;File='
       unset GOODMORNING_IMAGE_CAPTURE_MODE
@@ -215,7 +215,7 @@ Describe 'lib/daily_content.sh - iTerm2 Image Display'
 
     It 'fails for missing file'
       export GOODMORNING_IMAGE_CAPTURE_MODE=1
-      When call _display_image_iterm "/nonexistent/image.jpg"
+      When call display_image_iterm "/nonexistent/image.jpg"
       The status should be failure
       unset GOODMORNING_IMAGE_CAPTURE_MODE
     End
@@ -224,16 +224,16 @@ Describe 'lib/daily_content.sh - iTerm2 Image Display'
       unmock_iterm_environment
       export TERM_PROGRAM="Apple_Terminal"
       export GOODMORNING_IMAGE_CAPTURE_MODE=1
-      When call _display_image_iterm "$TEST_IMAGE"
+      When call display_image_iterm "$TEST_IMAGE"
       The status should be failure
       unset GOODMORNING_IMAGE_CAPTURE_MODE TERM_PROGRAM
     End
   End
 
-  Describe '_tty_is_available'
+  Describe 'tty_is_available'
     It 'returns success or failure based on tty'
       tty_check() {
-        _tty_is_available
+        tty_is_available
         local exit_code=$?
         [[ $exit_code -eq 0 || $exit_code -eq 1 ]]
       }
