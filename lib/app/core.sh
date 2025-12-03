@@ -15,24 +15,36 @@ cleanup_temp_files() {
   local pid
 
   # Guard: Only clean up files in /tmp or /private/tmp to prevent accidents
-  for file in "${TEMP_FILES[@]}"; do
-    # Validate file path before deletion
-    if [[ ! "$file" =~ ^/tmp/ ]] && [[ ! "$file" =~ ^/private/tmp/ ]] && [[ ! "$file" =~ ^/var/tmp/ ]]; then
-      echo "Warning: Skipping cleanup of file outside temp directory: $file" >> "$LOG_FILE" 2>&1
-      continue
-    fi
+  # Check if array is not empty before iterating
+  if [ ${#TEMP_FILES[@]} -gt 0 ]; then
+    for file in "${TEMP_FILES[@]}"; do
+      # Skip empty elements
+      [[ -z "$file" ]] && continue
 
-    if [ -f "$file" ]; then
-      # Use rm without -f to respect file permissions and get errors
-      rm "$file" 2>> "$LOG_FILE" || true
-    fi
-  done
+      # Validate file path before deletion
+      if [[ ! "$file" =~ ^/tmp/ ]] && [[ ! "$file" =~ ^/private/tmp/ ]] && [[ ! "$file" =~ ^/var/tmp/ ]]; then
+        echo "Warning: Skipping cleanup of file outside temp directory: $file" >> "$LOG_FILE" 2>&1
+        continue
+      fi
 
-  for pid in "${BACKGROUND_PIDS[@]}"; do
-    if kill -0 "$pid" 2>> "$LOG_FILE"; then
-      kill "$pid" 2>> "$LOG_FILE"
-    fi
-  done
+      if [ -f "$file" ]; then
+        # Use rm without -f to respect file permissions and get errors
+        rm "$file" 2>> "$LOG_FILE" || true
+      fi
+    done
+  fi
+
+  # Check if array is not empty before iterating
+  if [ ${#BACKGROUND_PIDS[@]} -gt 0 ]; then
+    for pid in "${BACKGROUND_PIDS[@]}"; do
+      # Skip empty elements
+      [[ -z "$pid" ]] && continue
+
+      if kill -0 "$pid" 2>> "$LOG_FILE"; then
+        kill "$pid" 2>> "$LOG_FILE"
+      fi
+    done
+  fi
 }
 
 # when the script exits or is interrupted, run cleanup
@@ -60,22 +72,14 @@ echo_warning() {
 
 iterm_mark() {
   if [[ "$TERM_PROGRAM" == "iTerm.app" || "$LC_TERMINAL" == "iTerm2" ]]; then
-    if [[ -w /dev/tty ]]; then
-      printf '\033]1337;SetMark\a' > /dev/tty
-    else
-      printf '\033]1337;SetMark\a'
-    fi
+    ( printf '\033]1337;SetMark\a' > /dev/tty ) 2>/dev/null || true
   fi
 }
 
 iterm_notify() {
   local message="$1"
   if [[ "$TERM_PROGRAM" == "iTerm.app" || "$LC_TERMINAL" == "iTerm2" ]]; then
-    if [[ -w /dev/tty ]]; then
-      printf '\033]9;%s\a' "$message" > /dev/tty
-    else
-      printf '\033]9;%s\a' "$message"
-    fi
+    ( printf '\033]9;%s\a' "$message" > /dev/tty ) 2>/dev/null || true
   fi
 }
 
@@ -84,21 +88,14 @@ iterm_set_badge() {
   if [[ "$TERM_PROGRAM" == "iTerm.app" || "$LC_TERMINAL" == "iTerm2" ]]; then
     local encoded
     encoded=$(printf '%s' "$badge_text" | base64)
-    if [[ -w /dev/tty ]]; then
-      printf '\033]1337;SetBadgeFormat=%s\a' "$encoded" > /dev/tty
-    else
-      printf '\033]1337;SetBadgeFormat=%s\a' "$encoded"
-    fi
+    ( printf '\033]1337;SetBadgeFormat=%s\a' "$encoded" > /dev/tty ) 2>/dev/null || true
   fi
 }
 
 iterm_set_title() {
   local title="$1"
-  if [[ -w /dev/tty ]]; then
-    printf '\033]0;%s\a' "$title" > /dev/tty
-  else
-    printf '\033]0;%s\a' "$title"
-  fi
+  # Try to write to /dev/tty, suppress all errors and fallback output
+  ( printf '\033]0;%s\a' "$title" > /dev/tty ) 2>/dev/null || true
 }
 
 iterm_create_status_badge() {
@@ -330,7 +327,7 @@ fetch_with_spinner() {
   local use_animation=false
   local tty_out=""
 
-  if [[ -c /dev/tty ]] && [[ -t 0 || -t 1 || -t 2 ]]; then
+  if [[ -c /dev/tty ]] 2>/dev/null && [[ -t 0 || -t 1 || -t 2 ]] 2>/dev/null; then
     # Additional check: verify we can actually write to /dev/tty
     if ( printf "" > /dev/tty ) 2>/dev/null; then
       tty_out="/dev/tty"
@@ -413,7 +410,7 @@ iterm_can_display_images() {
 }
 
 tty_is_available() {
-  [[ -c /dev/tty ]] && [[ -w /dev/tty ]]
+  [[ -c /dev/tty ]] 2>/dev/null && [[ -w /dev/tty ]] 2>/dev/null
 }
 
 generate_iterm_image_sequence() {
@@ -484,8 +481,7 @@ display_image_iterm() {
   fi
 
   if tty_is_available; then
-    printf '%s\n' "$sequence" > /dev/tty
-    return 0
+    ( printf '%s\n' "$sequence" > /dev/tty ) 2>/dev/null && return 0
   fi
 
   if [[ -n "$GOODMORNING_TERMINAL_FD" ]] && { true >&${GOODMORNING_TERMINAL_FD}; } 2>/dev/null; then

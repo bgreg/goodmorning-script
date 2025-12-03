@@ -57,87 +57,56 @@ else
   fi
 fi
 
-if [ -f "$SCRIPT_DIR/lib/app/colors.sh" ]; then
-  source "$SCRIPT_DIR/lib/app/colors.sh"
-fi
+###############################################################################
+# Library Sourcing Helper
+###############################################################################
 
-if [ -f "$SCRIPT_DIR/lib/app/core.sh" ]; then
-  source "$SCRIPT_DIR/lib/app/core.sh"
-fi
+# Helper function to source library files with optional required validation
+# Usage: _source_lib "lib/app/colors.sh" [required]
+# Returns: 0 if file sourced successfully, 1 if file missing
+_source_lib() {
+  local file="$SCRIPT_DIR/$1"
+  local required="${2:-}"
 
-# Source preflight checks
-if [ -f "$SCRIPT_DIR/lib/app/preflight/environment.sh" ]; then
-  source "$SCRIPT_DIR/lib/app/preflight/environment.sh"
-fi
+  if [ -f "$file" ]; then
+    source "$file"
+    return 0
+  else
+    if [[ "$required" == "required" ]]; then
+      echo "Error: Required file missing: $1" >&2
+      return 1
+    fi
+    return 1
+  fi
+}
 
-if [ -f "$SCRIPT_DIR/lib/app/preflight/network.sh" ]; then
-  source "$SCRIPT_DIR/lib/app/preflight/network.sh"
-fi
+###############################################################################
+# Source Library Files
+###############################################################################
 
-if [ -f "$SCRIPT_DIR/lib/app/preflight/tools.sh" ]; then
-  source "$SCRIPT_DIR/lib/app/preflight/tools.sh"
-fi
+# Core dependencies (must load first, order matters)
+_source_lib "lib/app/colors.sh" required
+_source_lib "lib/app/core.sh" required
 
-if [ -f "$SCRIPT_DIR/lib/app/updates.sh" ]; then
-  source "$SCRIPT_DIR/lib/app/updates.sh"
-fi
+# Preflight checks
+for module in environment network tools; do
+  _source_lib "lib/app/preflight/${module}.sh"
+done
 
-if [ -f "$SCRIPT_DIR/lib/app/display.sh" ]; then
-  source "$SCRIPT_DIR/lib/app/display.sh"
-fi
+# Core application modules
+for module in updates display learning versions view_helpers; do
+  _source_lib "lib/app/${module}.sh"
+done
 
-if [ -f "$SCRIPT_DIR/lib/app/learning.sh" ]; then
-  source "$SCRIPT_DIR/lib/app/learning.sh"
-fi
+# Daily content sections (order doesn't matter)
+for section in country_of_day word_of_day wikipedia_featured astronomy_picture cat_of_day alias_suggestions common_typos system_info; do
+  _source_lib "lib/app/sections/${section}.sh"
+done
 
-if [ -f "$SCRIPT_DIR/lib/app/versions.sh" ]; then
-  source "$SCRIPT_DIR/lib/app/versions.sh"
-fi
-
-if [ -f "$SCRIPT_DIR/lib/app/view_helpers.sh" ]; then
-  source "$SCRIPT_DIR/lib/app/view_helpers.sh"
-fi
-
-# Source daily content sections
-if [ -f "$SCRIPT_DIR/lib/app/sections/country_of_day.sh" ]; then
-  source "$SCRIPT_DIR/lib/app/sections/country_of_day.sh"
-fi
-
-if [ -f "$SCRIPT_DIR/lib/app/sections/word_of_day.sh" ]; then
-  source "$SCRIPT_DIR/lib/app/sections/word_of_day.sh"
-fi
-
-if [ -f "$SCRIPT_DIR/lib/app/sections/wikipedia_featured.sh" ]; then
-  source "$SCRIPT_DIR/lib/app/sections/wikipedia_featured.sh"
-fi
-
-if [ -f "$SCRIPT_DIR/lib/app/sections/astronomy_picture.sh" ]; then
-  source "$SCRIPT_DIR/lib/app/sections/astronomy_picture.sh"
-fi
-
-if [ -f "$SCRIPT_DIR/lib/app/sections/cat_of_day.sh" ]; then
-  source "$SCRIPT_DIR/lib/app/sections/cat_of_day.sh"
-fi
-
-if [ -f "$SCRIPT_DIR/lib/app/sections/alias_suggestions.sh" ]; then
-  source "$SCRIPT_DIR/lib/app/sections/alias_suggestions.sh"
-fi
-
-if [ -f "$SCRIPT_DIR/lib/app/sections/common_typos.sh" ]; then
-  source "$SCRIPT_DIR/lib/app/sections/common_typos.sh"
-fi
-
-if [ -f "$SCRIPT_DIR/lib/app/sections/system_info.sh" ]; then
-  source "$SCRIPT_DIR/lib/app/sections/system_info.sh"
-fi
-
-if [ -f "$SCRIPT_DIR/lib/app/sanity_maintenance.sh" ]; then
-  source "$SCRIPT_DIR/lib/app/sanity_maintenance.sh"
-fi
-
-if [ -f "$SCRIPT_DIR/lib/app/github.sh" ]; then
-  source "$SCRIPT_DIR/lib/app/github.sh"
-fi
+# Additional modules
+for module in sanity_maintenance github; do
+  _source_lib "lib/app/${module}.sh"
+done
 
 # ZSH default pattern, assigns the left side of := only if not already set
 : ${MAX_REMINDERS:="${GOODMORNING_MAX_REMINDERS:-10}"}
