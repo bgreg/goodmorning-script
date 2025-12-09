@@ -10,34 +10,11 @@
 # - Visual feedback (spinner) for long-running operations
 ###############################################################################
 
-cleanup_temp_files() {
-  local file
+cleanup_background_processes() {
   local pid
 
-  # Guard: Only clean up files in /tmp or /private/tmp to prevent accidents
-  # Check if array is not empty before iterating
-  if [ ${#TEMP_FILES[@]} -gt 0 ]; then
-    for file in "${TEMP_FILES[@]}"; do
-      # Skip empty elements
-      [[ -z "$file" ]] && continue
-
-      # Validate file path before deletion
-      if [[ ! "$file" =~ ^/tmp/ ]] && [[ ! "$file" =~ ^/private/tmp/ ]] && [[ ! "$file" =~ ^/var/tmp/ ]]; then
-        echo "Warning: Skipping cleanup of file outside temp directory: $file" >> "$LOG_FILE" 2>&1
-        continue
-      fi
-
-      if [ -f "$file" ]; then
-        # Use rm without -f to respect file permissions and get errors
-        rm "$file" 2>> "$LOG_FILE" || true
-      fi
-    done
-  fi
-
-  # Check if array is not empty before iterating
   if [ ${#BACKGROUND_PIDS[@]} -gt 0 ]; then
     for pid in "${BACKGROUND_PIDS[@]}"; do
-      # Skip empty elements
       [[ -z "$pid" ]] && continue
 
       if kill -0 "$pid" 2>> "$LOG_FILE"; then
@@ -47,8 +24,8 @@ cleanup_temp_files() {
   fi
 }
 
-# when the script exits or is interrupted, run cleanup
-trap cleanup_temp_files EXIT INT TERM
+# Register cleanup handler for script termination (EXIT, INT, TERM signals)
+trap cleanup_background_processes EXIT INT TERM
 
 ###############################################################################
 # Status Message Helpers
@@ -98,32 +75,25 @@ iterm_set_title() {
   ( printf '\033]0;%s\a' "$title" > /dev/tty ) 2>/dev/null || true
 }
 
+_fetch_count_with_timeout() {
+  local script_path="$1"
+  local timeout_seconds="${2:-2}"
+  local count=0
+
+  if timeout $timeout_seconds osascript "$script_path" &>/dev/null; then
+    count=$(timeout $timeout_seconds osascript "$script_path" 2>/dev/null || echo "0")
+    [[ "$count" =~ ^[0-9]+$ ]] || count=0
+  fi
+
+  echo "$count"
+}
+
 iterm_create_status_badge() {
-  local mail_count=0
-  local reminder_count=0
-  local calendar_count=0
+  local mail_count=$(_fetch_count_with_timeout "$SCRIPT_DIR/lib/app/apple_script/count_mail.scpt")
+  local reminder_count=$(_fetch_count_with_timeout "$SCRIPT_DIR/lib/app/apple_script/count_reminders.scpt")
+  local calendar_count=$(_fetch_count_with_timeout "$SCRIPT_DIR/lib/app/apple_script/count_calendar.scpt")
 
-  # Count unread mail (silent, non-blocking)
-  if osascript "$SCRIPT_DIR/lib/app/apple_script/count_mail.scpt" &>/dev/null; then
-    mail_count=$(osascript "$SCRIPT_DIR/lib/app/apple_script/count_mail.scpt" 2>/dev/null || echo "0")
-    [[ "$mail_count" =~ ^[0-9]+$ ]] || mail_count=0
-  fi
-
-  # Count incomplete reminders (silent, non-blocking)
-  if osascript "$SCRIPT_DIR/lib/app/apple_script/count_reminders.scpt" &>/dev/null; then
-    reminder_count=$(osascript "$SCRIPT_DIR/lib/app/apple_script/count_reminders.scpt" 2>/dev/null || echo "0")
-    [[ "$reminder_count" =~ ^[0-9]+$ ]] || reminder_count=0
-  fi
-
-  # Count today's calendar events (silent, non-blocking)
-  if osascript "$SCRIPT_DIR/lib/app/apple_script/count_calendar.scpt" &>/dev/null; then
-    calendar_count=$(osascript "$SCRIPT_DIR/lib/app/apple_script/count_calendar.scpt" 2>/dev/null || echo "0")
-    [[ "$calendar_count" =~ ^[0-9]+$ ]] || calendar_count=0
-  fi
-
-  # Create badge with counts (using blue/green theme)
-  local badge_text="📧 $mail_count  ✅ $reminder_count  📅 $calendar_count"
-  echo "$badge_text"
+  echo "📧 $mail_count  ✅ $reminder_count  📅 $calendar_count"
 }
 
 ###############################################################################
@@ -286,7 +256,7 @@ run_with_spinner() {
   while kill -0 "$pid" 2>/dev/null; do
     if (( elapsed >= timeout )); then
       printf "\e[?25h"  # Restore cursor
-      echo ""
+      show_new_line
       echo_warning "Operation timed out after ${timeout}s"
       kill "$pid" 2>/dev/null
       return 1
@@ -302,7 +272,6 @@ run_with_spinner() {
   wait "$pid"
   local exit_code=$?
 
-  # Restore cursor
   printf "\e[?25h"
 
   if [[ $exit_code -eq 0 ]]; then
@@ -315,20 +284,110 @@ run_with_spinner() {
   return 0
 }
 
+###############################################################################
+# Spinner Helper Functions
+###############################################################################
+
+# Constants for spinner timing
+readonly SPINNER_ITERATIONS_PER_SECOND=10
+readonly SPINNER_SLEEP_INTERVAL=0.1
+readonly SPINNER_CLEAR_WIDTH=70
+
+_hide_cursor() {
+  local tty_out="$1"
+  printf "\e[?25l" > "$tty_out" 2>/dev/null
+}
+
+_show_cursor() {
+  local tty_out="$1"
+  printf "\e[?25h" > "$tty_out" 2>/dev/null
+}
+
+_clear_spinner_line() {
+  local tty_out="$1"
+  printf "\r  %-${SPINNER_CLEAR_WIDTH}s\r" "" > "$tty_out" 2>/dev/null
+}
+
+# Check if process has exceeded timeout
+# Returns: 0 if timeout exceeded, 1 if still within timeout
+_has_timed_out() {
+  local iterations="$1"
+  local max_iterations="$2"
+  (( iterations >= max_iterations ))
+}
+
+# Handle timeout: cleanup and return error
+_handle_timeout() {
+  local pid="$1"
+  local tty_out="$2"
+  _clear_spinner_line "$tty_out"
+  _show_cursor "$tty_out"
+  kill "$pid" 2>/dev/null
+  exec 3<&-
+  return 1
+}
+
+# Run animated spinner while process executes
+_run_animated_spinner() {
+  local message="$1"
+  local pid="$2"
+  local tty_out="$3"
+  local max_iterations="$4"
+
+  _hide_cursor "$tty_out"
+  printf "  %s " "$message" > "$tty_out" 2>/dev/null
+
+  local -a spin_chars=("${SELECTED_SPINNER_CHARS[@]}")
+  local spin_index=0
+  local iterations=0
+
+  while kill -0 "$pid" 2>/dev/null; do
+    if _has_timed_out "$iterations" "$max_iterations"; then
+      _handle_timeout "$pid" "$tty_out"
+      return 1
+    fi
+
+    printf "\r  %s %s  " "$message" "${spin_chars[$((spin_index + 1))]}" > "$tty_out" 2>/dev/null
+    spin_index=$(( (spin_index + 1) % ${#spin_chars[@]} ))
+    sleep "$SPINNER_SLEEP_INTERVAL"
+    iterations=$((iterations + 1))
+  done
+
+  sleep 1
+  _clear_spinner_line "$tty_out"
+  _show_cursor "$tty_out"
+  return 0
+}
+
+# Wait silently for process to complete (no animation)
+_wait_silently() {
+  local pid="$1"
+  local max_iterations="$2"
+  local iterations=0
+
+  while kill -0 "$pid" 2>/dev/null; do
+    if _has_timed_out "$iterations" "$max_iterations"; then
+      kill "$pid" 2>/dev/null
+      exec 3<&-
+      return 1
+    fi
+    sleep "$SPINNER_SLEEP_INTERVAL"
+    iterations=$((iterations + 1))
+  done
+
+  return 0
+}
+
 # Fetch data with spinner, capturing output to a variable
 # Usage: local result=$(fetch_with_spinner "Loading..." command args)
 fetch_with_spinner() {
   local message="$1"
   shift
   local -a command=("$@")
-
-  # Determine if we can use animated spinner
-  # Only use /dev/tty for animation - stderr fallback causes corruption with tee
   local use_animation=false
   local tty_out=""
 
   if [[ -c /dev/tty ]] 2>/dev/null && [[ -t 0 || -t 1 || -t 2 ]] 2>/dev/null; then
-    # Additional check: verify we can actually write to /dev/tty
     if ( printf "" > /dev/tty ) 2>/dev/null; then
       tty_out="/dev/tty"
       use_animation=true
@@ -336,68 +395,28 @@ fetch_with_spinner() {
   fi
 
   local timeout=${SPINNER_TIMEOUT:-30}
-  local temp_file=$(mktemp)
+  local max_iterations=$((timeout * SPINNER_ITERATIONS_PER_SECOND))
+  local output=""
 
-  # Run command and capture output
-  "${command[@]}" > "$temp_file" 2>/dev/null &
+  exec 3< <("${command[@]}" 2>/dev/null)
   local pid=$!
-  local iterations=0
-  local max_iterations=$((timeout * 10))  # 10 iterations per second (0.1s delay)
 
   if [[ "$use_animation" == "true" ]]; then
-    # Animated spinner mode - write directly to /dev/tty
-    # Hide cursor during animation
-    printf "\e[?25l" > "$tty_out" 2>/dev/null
-    printf "  %s " "$message" > "$tty_out" 2>/dev/null
-
-    local -a spin_chars=("${SELECTED_SPINNER_CHARS[@]}")
-    local spin_index=0
-
-    while kill -0 "$pid" 2>/dev/null; do
-      if (( iterations >= max_iterations )); then
-        printf "\r  %-70s\r" "" > "$tty_out" 2>/dev/null
-        printf "\e[?25h" > "$tty_out" 2>/dev/null  # Restore cursor
-        kill "$pid" 2>/dev/null
-        rm -f "$temp_file"
-        return 1
-      fi
-
-      # Use carriage return to overwrite - works with any character width
-      printf "\r  %s %s  " "$message" "${spin_chars[$((spin_index + 1))]}" > "$tty_out" 2>/dev/null
-      spin_index=$(( (spin_index + 1) % ${#spin_chars[@]} ))
-      sleep 0.1
-      iterations=$((iterations + 1))
-    done
-
-    # Brief pause to let user see the final spinner state
-    sleep 1
-
-    # Clear the spinner line and restore cursor
-    printf "\r  %-70s\r" "" > "$tty_out" 2>/dev/null
-    printf "\e[?25h" > "$tty_out" 2>/dev/null
+    _run_animated_spinner "$message" "$pid" "$tty_out" "$max_iterations" || return 1
   else
-    # Non-animated mode - no terminal available, just wait silently
-    while kill -0 "$pid" 2>/dev/null; do
-      if (( iterations >= max_iterations )); then
-        kill "$pid" 2>/dev/null
-        rm -f "$temp_file"
-        return 1
-      fi
-      sleep 0.1
-      iterations=$((iterations + 1))
-    done
+    _wait_silently "$pid" "$max_iterations" || return 1
   fi
 
   wait "$pid"
   local exit_code=$?
 
-  # Output content if we got any, regardless of exit code
-  # (curl can return non-zero with valid partial data)
-  if [[ -s "$temp_file" ]]; then
-    cat "$temp_file"
+  output=$(cat <&3)
+  exec 3<&-
+
+  if [[ -n "$output" ]]; then
+    printf '%s\n' "$output"
   fi
 
-  rm -f "$temp_file"
   return $exit_code
 }
 

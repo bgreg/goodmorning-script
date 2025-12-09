@@ -7,57 +7,47 @@
 # Used by learning.sh, sanity_maintenance.sh, and other sections.
 ###############################################################################
 
-# Fetch and parse sitemap URLs
+_extract_loc_urls_from_xml() {
+  local xml_content="$1"
+  echo "$xml_content" | \
+    grep -o '<loc>[^<]*</loc>' | \
+    sed 's|<loc>\(.*\)</loc>|\1|'
+}
+
+_filter_non_content_urls() {
+  grep -v '\.\(png\|jpg\|jpeg\|gif\|svg\|css\|js\|xml\|pdf\)$'
+}
+
+_filter_documentation_urls() {
+  grep -E '(doc|guide|tutorial|reference|api|manual|learn)'
+}
+
 fetch_sitemap_urls() {
   local sitemap_url="$1"
-  local urls=()
-
-  # Fetch sitemap and extract <loc> tags
-  # Use --compressed to handle gzipped sitemaps automatically
   local sitemap_content=$(curl -s -L --compressed --max-time 10 "$sitemap_url" 2>/dev/null)
 
   if [ -n "$sitemap_content" ]; then
-    # Extract URLs from <loc> tags
-    urls=(${(f)"$(echo "$sitemap_content" | \
-            grep -o '<loc>[^<]*</loc>' | \
-            sed 's|<loc>\(.*\)</loc>|\1|' | \
-            grep -v '\.\(png\|jpg\|jpeg\|gif\|svg\|css\|js\|xml\|pdf\)$')"})
+    _extract_loc_urls_from_xml "$sitemap_content" | _filter_non_content_urls
   fi
-
-  printf '%s\n' "${urls[@]}"
 }
 
-# Fetch sitemap URLs filtered for documentation
 fetch_doc_sitemap_urls() {
   local sitemap_url="$1"
-  local urls=()
-
   local sitemap_content=$(curl -s -L --compressed --max-time 10 "$sitemap_url" 2>/dev/null)
 
   if [ -n "$sitemap_content" ]; then
-    # Extract URLs, filter for documentation pages
-    urls=(${(f)"$(echo "$sitemap_content" | \
-            grep -o '<loc>[^<]*</loc>' | \
-            sed 's|<loc>\(.*\)</loc>|\1|' | \
-            grep -v '\.\(png\|jpg\|jpeg\|gif\|svg\|css\|js\|xml\|pdf\)$' | \
-            grep -E '(doc|guide|tutorial|reference|api|manual|learn)')"})
+    local doc_urls=$(_extract_loc_urls_from_xml "$sitemap_content" | _filter_documentation_urls | _filter_non_content_urls)
 
-    # If no filtered URLs, use all URLs
-    if [ ${#urls[@]} -eq 0 ]; then
-      urls=(${(f)"$(echo "$sitemap_content" | \
-              grep -o '<loc>[^<]*</loc>' | \
-              sed 's|<loc>\(.*\)</loc>|\1|' | \
-              grep -v '\.\(png\|jpg\|jpeg\|gif\|svg\|css\|js\|xml\)$')"})
+    if [ -z "$doc_urls" ]; then
+      _extract_loc_urls_from_xml "$sitemap_content" | _filter_non_content_urls
+    else
+      echo "$doc_urls"
     fi
   fi
-
-  printf '%s\n' "${urls[@]}"
 }
 
-# Extract title from URL
 extract_title_from_url() {
   local url="$1"
-  # Get last path segment, remove extension, replace dashes/underscores with spaces, title case
   local title=$(echo "$url" | sed -E 's|.*/([^/]+)/?$|\1|' | \
                 sed -E 's/\.(html?|php|aspx?)$//' | \
                 tr '_-' ' ' | \

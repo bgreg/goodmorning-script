@@ -10,27 +10,40 @@
 SECTION_DEPS_TOOLS=(curl jq)
 SECTION_DEPS_NETWORK=true
 
-get_word_cache_file() {
-  echo "${GOODMORNING_CONFIG_DIR}/cache/word_of_day.json"
-}
+###############################################################################
+# get_deterministic_daily_word - Select interesting word based on day of year
+#
+# Uses /usr/share/dict/words with filtering criteria:
+# - Length: 7-15 characters (interesting but not obscure)
+# - Lowercase only (excludes proper nouns)
+# - Day-based selection for consistency throughout the day
+#
+# Returns: A single word, or fallback if dictionary unavailable
+###############################################################################
+get_deterministic_daily_word() {
+  local dict_file="/usr/share/dict/words"
 
-get_random_word() {
-  local words=(
-    "ephemeral" "ubiquitous" "serendipity" "eloquent" "resilient"
-    "pragmatic" "meticulous" "tenacious" "juxtaposition" "paradigm"
-    "quintessential" "esoteric" "cogent" "pernicious" "sagacious"
-    "mellifluous" "ineffable" "sanguine" "perspicacious" "laconic"
-    "munificent" "pulchritudinous" "defenestrate" "petrichor" "apricity"
-    "susurrus" "vellichor" "sonder" "numinous" "halcyon"
-  )
+  if [[ ! -f "$dict_file" ]]; then
+    echo "ephemeral"
+    return
+  fi
+
   local day_of_year=$(date +%j | sed 's/^0*//')
-  local index=$((day_of_year % ${#words[@]}))
-  echo "${words[$index]}"
+
+  local word=$(grep -E '^[a-z]{7,15}$' "$dict_file" | \
+    sed -n "${day_of_year}~50p" | \
+    head -1)
+
+  if [[ -z "$word" ]]; then
+    word="serendipity"
+  fi
+
+  echo "$word"
 }
 
 fetch_word_of_day() {
-  local word=$(get_random_word)
-  local word_data=$(curl -s "https://api.dictionaryapi.dev/api/v2/entries/en/$word" 2>/dev/null)
+  local word=$(get_deterministic_daily_word)
+  local word_data=$(curl -s --max-time 10 "https://api.dictionaryapi.dev/api/v2/entries/en/$word" 2>/dev/null)
 
   if [ -z "$word_data" ]; then
     return 1
@@ -84,7 +97,7 @@ show_word_of_day() {
     return 0
   fi
 
-  echo ""
+  show_new_line
   phonetic=$(safe_display "$phonetic" "")
   if [ -n "$phonetic" ]; then
     echo_cyan "  📖 $(echo_green "$word") $(echo_gray "$phonetic")"
@@ -96,13 +109,13 @@ show_word_of_day() {
   if [ -n "$part_of_speech" ]; then
     echo_gray "     $part_of_speech"
   fi
-  echo ""
+  show_new_line
   echo "  $definition" | fold -s -w 70 | sed 's/^/  /'
 
   example=$(safe_display "$example" "")
   if [ -n "$example" ] && [ "$example" != "N/A" ]; then
-    echo ""
+    show_new_line
     echo_gray "  Example: \"$example\""
   fi
-  echo ""
+  show_new_line
 }
