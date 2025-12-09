@@ -223,7 +223,7 @@ select_random_spinner_style() {
   fi
 
   local style_count=${#SPINNER_STYLE_NAMES[@]}
-  local random_index=$((RANDOM % style_count))
+  local random_index=$(random_in_range "$style_count")
   SELECTED_SPINNER_STYLE="${SPINNER_STYLE_NAMES[$((random_index + 1))]}"
 
   local chars_string="${SPINNER_STYLES_CHARS[$SELECTED_SPINNER_STYLE]}"

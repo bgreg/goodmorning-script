@@ -17,14 +17,13 @@
 # Source shared sitemap utilities
 source "${SCRIPT_DIR}/lib/app/sitemap.sh"
 
-# Display a sitemap-based learning resource
 _show_sitemap_resource() {
   local json_file="$1"
 
   local sitemap_count=$(jq '.sitemaps | length' "$json_file" 2>/dev/null)
   [ -z "$sitemap_count" ] || [ "$sitemap_count" -eq 0 ] && return 1
 
-  local random_index=$((RANDOM % sitemap_count))
+  local random_index=$(random_in_range "$sitemap_count")
   local title=$(jq -r ".sitemaps[$random_index].title" "$json_file")
   local sitemap=$(jq -r ".sitemaps[$random_index].sitemap" "$json_file")
 
@@ -37,7 +36,6 @@ _show_sitemap_resource() {
   fi
 
   local -a sitemap_links
-  # Split content into array, handling potential empty or malformed content
   if [[ -n "$sitemap_content" ]]; then
     sitemap_links=("${(@f)sitemap_content}")
   fi
@@ -47,7 +45,7 @@ _show_sitemap_resource() {
     return 1
   fi
 
-  local doc_url="${sitemap_links[$((RANDOM % ${#sitemap_links[@]} + 1))]}"
+  local doc_url=$(random_array_element "${sitemap_links[@]}")
   local doc_title=$(extract_title_from_url "$doc_url")
 
   echo_cyan "  Topic: ${title}"
@@ -61,14 +59,13 @@ _show_sitemap_resource() {
   return 0
 }
 
-# Display a static learning resource
 _show_static_resource() {
   local json_file="$1"
 
   local static_count=$(jq '.static | length' "$json_file" 2>/dev/null)
   [ -z "$static_count" ] || [ "$static_count" -eq 0 ] && return 1
 
-  local random_index=$((RANDOM % static_count))
+  local random_index=$(random_in_range "$static_count")
   local title=$(jq -r ".static[$random_index].title" "$json_file")
   local url=$(jq -r ".static[$random_index].url" "$json_file")
 
@@ -87,27 +84,27 @@ show_daily_learning() {
 
   # Find JSON file
   local json_file="${GOODMORNING_CONFIG_DIR}/learning-sources.json"
-  [ ! -f "$json_file" ] && json_file="${SCRIPT_DIR}/learning-sources.json"
+  [ ! -f "$json_file" ] && json_file="${SCRIPT_DIR}/data/learning-sources.json"
 
   if [ ! -f "$json_file" ]; then
     echo_yellow "  Learning sources file not found"
     show_setup_message "Run './setup.sh --section learning' to configure"
-    echo ""
+    show_new_line
     return
   fi
 
   # Show one from sitemaps
-  echo ""
+  show_new_line
   if ! _show_sitemap_resource "$json_file"; then
     echo_yellow "  No sitemap sources available"
   fi
 
-  echo ""
+  show_new_line
 
   # Show one from static
   if ! _show_static_resource "$json_file"; then
     echo_yellow "  No static sources available"
   fi
 
-  echo ""
+  show_new_line
 }

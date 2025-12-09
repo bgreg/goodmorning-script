@@ -4,38 +4,20 @@
 # NASA Astronomy Picture of the Day Section
 ###############################################################################
 
-# Section dependencies
-SECTION_DEPS_TOOLS=(curl jq)
-SECTION_DEPS_NETWORK=true
-
 fetch_apod() {
   local api_key="${GOODMORNING_NASA_API_KEY:-DEMO_KEY}"
   local apod_url="https://api.nasa.gov/planetary/apod?api_key=${api_key}"
-  local apod_data=$(curl -s "$apod_url" 2>/dev/null)
+  local apod_data=$(fetch_url "$apod_url")
 
-  if [ -z "$apod_data" ]; then
-    return 1
-  fi
-
-  local has_error=$(printf '%s' "$apod_data" | jq -r '.error // empty' 2>/dev/null)
-  if [ -n "$has_error" ]; then
-    return 1
-  fi
-
-  local title=$(printf '%s' "$apod_data" | jq -r '.title // empty' 2>/dev/null)
-  if [ -z "$title" ]; then
-    return 1
-  fi
+  require_non_empty "$apod_data" || return 1
+  [[ -n "$(jq_extract "$apod_data" '.error')" ]] && return 1
+  require_non_empty "$(jq_extract "$apod_data" '.title')" || return 1
 
   print -r -- "$apod_data"
   return 0
 }
 
 show_apod() {
-  if [ -n "$GOODMORNING_FORCE_OFFLINE" ]; then
-    return 0
-  fi
-
   print_section "Astronomy Picture of the Day" "cyan"
 
   local apod_data=$(fetch_with_spinner "Fetching APOD..." fetch_apod)
@@ -46,25 +28,32 @@ show_apod() {
     return 0
   fi
 
-  local title=$(printf '%s' "$apod_data" | jq -r '.title' 2>/dev/null)
-  local explanation=$(printf '%s' "$apod_data" | jq -r '.explanation' 2>/dev/null)
-  local url=$(printf '%s' "$apod_data" | jq -r '.url' 2>/dev/null)
-  local apod_date=$(printf '%s' "$apod_data" | jq -r '.date' 2>/dev/null)
-  local media_type=$(printf '%s' "$apod_data" | jq -r '.media_type' 2>/dev/null)
+  local title=$(jq_extract "$apod_data" '.title')
+  local explanation=$(jq_extract "$apod_data" '.explanation')
+  local url=$(jq_extract "$apod_data" '.url')
+  local apod_date=$(jq_extract "$apod_data" '.date')
+  local media_type=$(jq_extract "$apod_data" '.media_type')
 
-  echo ""
+  show_new_line
   echo_cyan "  🌌 $(echo_green "$title")"
-  echo ""
+  show_new_line
 
+  # Download and display image if available
   if [ "$media_type" = "image" ]; then
-    if iterm_can_display_images; then
-      echo "  $(echo_yellow 'Image available at URL below')"
-      echo ""
+    local image_file="${TMPDIR:-/tmp}/apod_image_$$.jpg"
+    download_image "$url" "$image_file" >/dev/null 2>&1
+
+    # Display image if in iTerm2 and image is valid
+    if iterm_can_display_images && validate_image_file "$image_file"; then
+      echo "  $(echo_yellow 'Displaying image in iTerm...')"
+      show_new_line
+      display_image_iterm "$image_file"
+      show_new_line
     fi
   fi
 
   echo "$explanation" | fold -s -w 70 | sed 's/^/  /'
-  echo ""
+  show_new_line
 
   local display_url=""
   if [ -n "$url" ] && [ "$url" != "null" ]; then
@@ -77,5 +66,5 @@ show_apod() {
   fi
 
   echo_cyan "  🔗 $display_url"
-  echo ""
+  show_new_line
 }

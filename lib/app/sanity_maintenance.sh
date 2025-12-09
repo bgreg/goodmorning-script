@@ -21,15 +21,15 @@
 source "${SCRIPT_DIR}/lib/app/sitemap.sh"
 
 _fetch_xkcd_data() {
-  local latest=$(curl -s --max-time 10 "https://xkcd.com/info.0.json" 2>/dev/null | jq -r '.num' 2>/dev/null)
+  local latest=$(fetch_url "https://xkcd.com/info.0.json" | jq -r '.num' 2>/dev/null)
 
   if [ -z "$latest" ] || [ "$latest" = "null" ]; then
     show_new_line
     return 1
   fi
 
-  local random_num=$((RANDOM % (latest - 1) + 1))
-  local comic_data=$(curl -s --max-time 10 "https://xkcd.com/${random_num}/info.0.json" 2>/dev/null)
+  local random_num=$(($(random_in_range $((latest - 1))) + 1))
+  local comic_data=$(fetch_url "https://xkcd.com/${random_num}/info.0.json")
 
   if [ -n "$comic_data" ]; then
     local title=$(echo "$comic_data" | jq -r '.title' 2>/dev/null)
@@ -45,7 +45,7 @@ _fetch_random_xkcd() {
 
 _handle_xkcd_random_url() {
   local category="$1"
-  local category_title=$(echo "$category" | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) tolower(substr($i,2))}1')
+  local category_title=$(to_title_case "$category")
 
   local xkcd_result=$(_fetch_random_xkcd)
   if [ -n "$xkcd_result" ]; then
@@ -69,7 +69,7 @@ _show_from_category() {
   local item_count=$(jq ".categories.${category} | length" "$json_file" 2>/dev/null)
   [ -z "$item_count" ] || [ "$item_count" -eq 0 ] && return 1
 
-  local random_index=$((RANDOM % item_count))
+  local random_index=$(random_in_range "$item_count")
   local title=$(jq -r ".categories.${category}[$random_index].title" "$json_file")
   local url=$(jq -r ".categories.${category}[$random_index].url" "$json_file")
 
@@ -78,7 +78,7 @@ _show_from_category() {
     return $?
   fi
 
-  local category_title=$(echo "$category" | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) tolower(substr($i,2))}1')
+  local category_title=$(to_title_case "$category")
   echo_yellow "  ${category_title}:"
   echo_cyan "    ${title}"
   echo_gray "    ${url}"
@@ -97,7 +97,7 @@ _show_random_from_categories() {
   local categories=(${(f)"$(jq -r "$jq_filter" "$json_file" 2>/dev/null)"})
   [ ${#categories[@]} -eq 0 ] && return 1
 
-  local random_category="${categories[$((RANDOM % ${#categories[@]} + 1))]}"
+  local random_category=$(random_array_element "${categories[@]}")
   _show_from_category "$json_file" "$random_category"
 }
 

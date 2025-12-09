@@ -6,10 +6,6 @@
 # Displays word definitions using Free Dictionary API
 ###############################################################################
 
-# Section dependencies
-SECTION_DEPS_TOOLS=(curl jq)
-SECTION_DEPS_NETWORK=true
-
 ###############################################################################
 # get_deterministic_daily_word - Select interesting word based on day of year
 #
@@ -43,19 +39,17 @@ get_deterministic_daily_word() {
 
 fetch_word_of_day() {
   local word=$(get_deterministic_daily_word)
-  local word_data=$(curl -s --max-time 10 "https://api.dictionaryapi.dev/api/v2/entries/en/$word" 2>/dev/null)
+  local word_data=$(fetch_url "https://api.dictionaryapi.dev/api/v2/entries/en/$word")
 
-  if [ -z "$word_data" ]; then
-    return 1
-  fi
+  require_non_empty "$word_data" || return 1
 
-  local fetched_word=$(printf '%s' "$word_data" | jq -r '.[0].word' 2>/dev/null)
+  local fetched_word=$(jq_extract "$word_data" '.[0].word')
   local phonetic=$(printf '%s' "$word_data" | jq -r '.[0].phonetic // .[0].phonetics[0].text // ""' 2>/dev/null)
-  local part_of_speech=$(printf '%s' "$word_data" | jq -r '.[0].meanings[0].partOfSpeech' 2>/dev/null)
-  local definition=$(printf '%s' "$word_data" | jq -r '.[0].meanings[0].definitions[0].definition' 2>/dev/null)
+  local part_of_speech=$(jq_extract "$word_data" '.[0].meanings[0].partOfSpeech')
+  local definition=$(jq_extract "$word_data" '.[0].meanings[0].definitions[0].definition')
   local example=$(printf '%s' "$word_data" | jq -r '.[0].meanings[0].definitions[0].example // ""' 2>/dev/null)
 
-  if [ -n "$fetched_word" ] && [ "$fetched_word" != "null" ]; then
+  if [[ -n "$fetched_word" ]]; then
     jq -n \
       --arg word "$fetched_word" \
       --arg phonetic "$phonetic" \
@@ -70,10 +64,6 @@ fetch_word_of_day() {
 }
 
 show_word_of_day() {
-  if [ -n "$GOODMORNING_FORCE_OFFLINE" ]; then
-    return 0
-  fi
-
   print_section "Word of the Day" "cyan"
 
   local word_data=$(fetch_with_spinner "Fetching word..." fetch_word_of_day)
@@ -83,11 +73,11 @@ show_word_of_day() {
     return 0
   fi
 
-  local word=$(printf '%s' "$word_data" | jq -r '.word' 2>/dev/null)
-  local phonetic=$(printf '%s' "$word_data" | jq -r '.phonetic' 2>/dev/null)
-  local part_of_speech=$(printf '%s' "$word_data" | jq -r '.partOfSpeech' 2>/dev/null)
-  local definition=$(printf '%s' "$word_data" | jq -r '.definition' 2>/dev/null)
-  local example=$(printf '%s' "$word_data" | jq -r '.example' 2>/dev/null)
+  local word=$(jq_extract "$word_data" '.word')
+  local phonetic=$(jq_extract "$word_data" '.phonetic')
+  local part_of_speech=$(jq_extract "$word_data" '.partOfSpeech')
+  local definition=$(jq_extract "$word_data" '.definition')
+  local example=$(jq_extract "$word_data" '.example')
 
   word=$(safe_display "$word" "")
   definition=$(safe_display "$definition" "")

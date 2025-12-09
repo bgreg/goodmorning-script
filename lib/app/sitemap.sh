@@ -24,25 +24,24 @@ _filter_documentation_urls() {
 
 fetch_sitemap_urls() {
   local sitemap_url="$1"
-  local sitemap_content=$(curl -s -L --compressed --max-time 10 "$sitemap_url" 2>/dev/null)
+  local sitemap_content=$(fetch_url_compressed "$sitemap_url")
 
-  if [ -n "$sitemap_content" ]; then
-    _extract_loc_urls_from_xml "$sitemap_content" | _filter_non_content_urls
-  fi
+  require_non_empty "$sitemap_content" || return 1
+  _extract_loc_urls_from_xml "$sitemap_content" | _filter_non_content_urls
 }
 
 fetch_doc_sitemap_urls() {
   local sitemap_url="$1"
-  local sitemap_content=$(curl -s -L --compressed --max-time 10 "$sitemap_url" 2>/dev/null)
+  local sitemap_content=$(fetch_url_compressed "$sitemap_url")
 
-  if [ -n "$sitemap_content" ]; then
-    local doc_urls=$(_extract_loc_urls_from_xml "$sitemap_content" | _filter_documentation_urls | _filter_non_content_urls)
+  require_non_empty "$sitemap_content" || return 1
 
-    if [ -z "$doc_urls" ]; then
-      _extract_loc_urls_from_xml "$sitemap_content" | _filter_non_content_urls
-    else
-      echo "$doc_urls"
-    fi
+  local doc_urls=$(_extract_loc_urls_from_xml "$sitemap_content" | _filter_documentation_urls | _filter_non_content_urls)
+
+  if [ -z "$doc_urls" ]; then
+    _extract_loc_urls_from_xml "$sitemap_content" | _filter_non_content_urls
+  else
+    echo "$doc_urls"
   fi
 }
 
@@ -50,9 +49,8 @@ extract_title_from_url() {
   local url="$1"
   local title=$(echo "$url" | sed -E 's|.*/([^/]+)/?$|\1|' | \
                 sed -E 's/\.(html?|php|aspx?)$//' | \
-                tr '_-' ' ' | \
-                awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) tolower(substr($i,2))}1')
-  echo "$title"
+                tr '_-' ' ')
+  to_title_case "$title"
 }
 
 # Pick random item from JSON array
@@ -63,6 +61,6 @@ pick_random_from_json() {
   local count=$(jq "${array_path} | length" "$json_file" 2>/dev/null)
   [ -z "$count" ] || [ "$count" -eq 0 ] && return 1
 
-  local random_index=$((RANDOM % count))
+  local random_index=$(random_in_range "$count")
   jq -r "${array_path}[$random_index]" "$json_file"
 }
