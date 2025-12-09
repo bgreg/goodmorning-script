@@ -1,0 +1,17 @@
+echo -e "${COLOR_RED}========================================${COLOR_RESET}"
+echo -e "${COLOR_RED}  🔧 IMPORTANT: Development Work${COLOR_RESET}"
+echo -e "${COLOR_RED}========================================${COLOR_RESET}"
+echo -e "${COLOR_YELLOW}⚠️  Project Name - Task Description${COLOR_RESET}"
+show_new_line
+echo -e "  ${COLOR_CYAN}Branch:${COLOR_RESET} feature/your-branch-name"
+echo -e "  ${COLOR_CYAN}Location:${COLOR_RESET} ~/path/to/project"
+show_new_line
+echo -e "  ${COLOR_GREEN}✅ Completed Task:${COLOR_RESET} Description of what's done"
+echo -e "  ${COLOR_RED}⚠️  In Progress:${COLOR_RESET} Description of current work"
+echo -e "  ${COLOR_YELLOW}❓ TODO:${COLOR_RESET} Description of pending work"
+show_new_line
+echo -e "  ${COLOR_CYAN}Next Steps:${COLOR_RESET}"
+show_new_line
+echo -e "  ${COLOR_CYAN}Documentation:${COLOR_RESET} link-to-notes.md"
+echo -e "${COLOR_RED}========================================${COLOR_RESET}"
+show_new_line

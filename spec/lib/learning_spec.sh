@@ -2,9 +2,10 @@
 #shellspec shell=zsh
 
 Describe 'lib/app/learning.sh - Daily Learning System'
+  Include lib/utilities.sh
   Include lib/app/colors.sh
   Include lib/app/core.sh
-  Include lib/sitemap.sh
+  Include lib/app/sitemap.sh
   Include lib/app/learning.sh
 
   Describe 'show_daily_learning function'

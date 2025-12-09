@@ -153,34 +153,41 @@ show_github_notifications() {
 }
 
 
+_validate_author_email() {
+  local email="$1"
+  [[ "$email" =~ ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]
+}
+
+_get_repo_commits() {
+  local gitdir="$1"
+  local repo_dir=$(dirname "$gitdir")
+
+  cd "$repo_dir" 2>> "$LOG_FILE" || return 1
+
+  local author_email=$(git config user.email 2>> "$LOG_FILE")
+  [ -z "$author_email" ] && return 1
+  _validate_author_email "$author_email" || return 1
+
+  local commits=$(git log --since="${GIT_LOOKBACK_DAYS} days ago" --pretty=format:"%s" \
+    --author="$author_email" 2>> "$LOG_FILE" | head -"$MAX_COMMITS_PER_REPO")
+
+  if [ -n "$commits" ]; then
+    echo "Recent commits in $(basename "$repo_dir"):"
+    echo "$commits"
+  fi
+}
+
 _gather_git_context() {
   local context=""
 
   for project_dir in ${(s.:.)PROJECT_DIRS}; do
-    if [ ! -d "$project_dir" ] || [ ! -r "$project_dir" ]; then
-      continue
-    fi
+    [ ! -d "$project_dir" ] || [ ! -r "$project_dir" ] && continue
 
-    local recent_commits=$(timeout "$GIT_SCAN_TIMEOUT" find "$project_dir" -maxdepth "$GIT_SCAN_DEPTH" -name ".git" -type d 2>> "$LOG_FILE" | head -"$MAX_REPOS_TO_SCAN" | while read -r gitdir; do
-      local repo_dir=$(dirname "$gitdir")
-      cd "$repo_dir" 2>> "$LOG_FILE" || continue
-
-      local author_email=$(git config user.email 2>> "$LOG_FILE")
-      if [ -z "$author_email" ]; then
-        continue
-      fi
-
-      if [[ ! "$author_email" =~ ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
-        continue
-      fi
-
-      local commits=$(git log --since="${GIT_LOOKBACK_DAYS} days ago" --pretty=format:"%s" \
-        --author="$author_email" 2>> "$LOG_FILE" | head -"$MAX_COMMITS_PER_REPO")
-      if [ -n "$commits" ]; then
-        echo "Recent commits in $(basename "$repo_dir"):"
-        echo "$commits"
-      fi
-    done | head -20)
+    local recent_commits=$(timeout "$GIT_SCAN_TIMEOUT" find "$project_dir" -maxdepth "$GIT_SCAN_DEPTH" -name ".git" -type d 2>> "$LOG_FILE" | \
+      head -"$MAX_REPOS_TO_SCAN" | \
+      while read -r gitdir; do
+        _get_repo_commits "$gitdir"
+      done | head -20)
 
     context="${context}${recent_commits}"
   done
@@ -188,17 +195,16 @@ _gather_git_context() {
   echo "$context"
 }
 
-_generate_and_display_tip() {
+_build_learning_prompt() {
   local context="$1"
   local prompt_type="$2"
-  local claude_tip
-  local prompt
 
   if [ "$prompt_type" = "personalized" ]; then
     local sanitized_context
     sanitized_context=$(printf '%s' "$context" | tr -d '\000-\031\177-\237' | head -c "$MAX_CONTEXT_LENGTH")
 
-    prompt="Based on my recent development work:
+    cat <<EOF
+Based on my recent development work:
 
 ${sanitized_context}
 
@@ -208,15 +214,25 @@ IMPORTANT REQUIREMENTS:
 1. Only provide factual, verifiable information from official documentation or well-known technical resources
 2. You MUST end with a blank line followed by 'Source: [Title] - ' and then a REAL, working URL that I can click
 3. Do NOT make up sources or URLs - only use actual documentation sites you know exist
-4. If you cannot provide a real URL, simply provide a general software engineering tip with a real URL instead"
+4. If you cannot provide a real URL, simply provide a general software engineering tip with a real URL instead
+EOF
   else
-    prompt="Give me ONE short, actionable software engineering learning tip (2-3 sentences) that would be valuable for a developer.
+    cat <<EOF
+Give me ONE short, actionable software engineering learning tip (2-3 sentences) that would be valuable for a developer.
 
 IMPORTANT REQUIREMENTS:
 1. Only provide factual, verifiable information from official documentation or well-known technical resources
 2. You MUST end with a blank line followed by 'Source: [Title] - ' and then a REAL, working URL that I can click
-3. Do NOT make up sources or URLs - only use actual documentation sites you know exist"
+3. Do NOT make up sources or URLs - only use actual documentation sites you know exist
+EOF
   fi
+}
+
+_generate_and_display_tip() {
+  local context="$1"
+  local prompt_type="$2"
+  local claude_tip
+  local prompt=$(_build_learning_prompt "$context" "$prompt_type")
 
   claude_tip=$(fetch_with_spinner "Getting learning tip..." claude -p "$prompt")
 

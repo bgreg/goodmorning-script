@@ -2,7 +2,8 @@
 #shellspec shell=zsh
 
 Describe 'lib/sitemap.sh - Sitemap Utilities'
-  Include lib/sitemap.sh
+  Include lib/utilities.sh
+  Include lib/app/sitemap.sh
 
   Describe 'extract_title_from_url function'
     It 'is defined'

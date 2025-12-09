@@ -17,6 +17,37 @@ fetch_apod() {
   return 0
 }
 
+_display_apod_image() {
+  local media_type="$1"
+  local url="$2"
+
+  if [ "$media_type" = "image" ]; then
+    local image_file="${TMPDIR:-/tmp}/apod_image_$$.jpg"
+    download_image "$url" "$image_file" >/dev/null 2>&1
+
+    if iterm_can_display_images && validate_image_file "$image_file"; then
+      echo "  $(echo_yellow 'Displaying image in iTerm...')"
+      show_new_line
+      display_image_iterm "$image_file"
+      show_new_line
+    fi
+  fi
+}
+
+_generate_apod_url() {
+  local url="$1"
+  local apod_date="$2"
+
+  if [ -n "$url" ] && [ "$url" != "null" ]; then
+    echo "$url"
+  elif [ -n "$apod_date" ] && [ "$apod_date" != "null" ]; then
+    local formatted_date=$(echo "$apod_date" | sed 's/-//g' | cut -c3-)
+    echo "https://apod.nasa.gov/apod/ap${formatted_date}.html"
+  else
+    echo "https://apod.nasa.gov/apod/astropix.html"
+  fi
+}
+
 show_apod() {
   print_section "Astronomy Picture of the Day" "cyan"
 
@@ -38,33 +69,12 @@ show_apod() {
   echo_cyan "  🌌 $(echo_green "$title")"
   show_new_line
 
-  # Download and display image if available
-  if [ "$media_type" = "image" ]; then
-    local image_file="${TMPDIR:-/tmp}/apod_image_$$.jpg"
-    download_image "$url" "$image_file" >/dev/null 2>&1
-
-    # Display image if in iTerm2 and image is valid
-    if iterm_can_display_images && validate_image_file "$image_file"; then
-      echo "  $(echo_yellow 'Displaying image in iTerm...')"
-      show_new_line
-      display_image_iterm "$image_file"
-      show_new_line
-    fi
-  fi
+  _display_apod_image "$media_type" "$url"
 
   echo "$explanation" | fold -s -w 70 | sed 's/^/  /'
   show_new_line
 
-  local display_url=""
-  if [ -n "$url" ] && [ "$url" != "null" ]; then
-    display_url="$url"
-  elif [ -n "$apod_date" ] && [ "$apod_date" != "null" ]; then
-    local formatted_date=$(echo "$apod_date" | sed 's/-//g' | cut -c3-)
-    display_url="https://apod.nasa.gov/apod/ap${formatted_date}.html"
-  else
-    display_url="https://apod.nasa.gov/apod/astropix.html"
-  fi
-
+  local display_url=$(_generate_apod_url "$url" "$apod_date")
   echo_cyan "  🔗 $display_url"
   show_new_line
 }

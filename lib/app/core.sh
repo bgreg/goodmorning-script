@@ -47,22 +47,26 @@ echo_warning() {
 # iTerm2 Integration
 ###############################################################################
 
+is_iterm() {
+  [[ "$TERM_PROGRAM" == "iTerm.app" || "$LC_TERMINAL" == "iTerm2" ]]
+}
+
 iterm_mark() {
-  if [[ "$TERM_PROGRAM" == "iTerm.app" || "$LC_TERMINAL" == "iTerm2" ]]; then
+  if is_iterm; then
     ( printf '\033]1337;SetMark\a' > /dev/tty ) 2>/dev/null || true
   fi
 }
 
 iterm_notify() {
   local message="$1"
-  if [[ "$TERM_PROGRAM" == "iTerm.app" || "$LC_TERMINAL" == "iTerm2" ]]; then
+  if is_iterm; then
     ( printf '\033]9;%s\a' "$message" > /dev/tty ) 2>/dev/null || true
   fi
 }
 
 iterm_set_badge() {
   local badge_text="$1"
-  if [[ "$TERM_PROGRAM" == "iTerm.app" || "$LC_TERMINAL" == "iTerm2" ]]; then
+  if is_iterm; then
     local encoded
     encoded=$(printf '%s' "$badge_text" | base64)
     ( printf '\033]1337;SetBadgeFormat=%s\a' "$encoded" > /dev/tty ) 2>/dev/null || true
@@ -425,7 +429,7 @@ fetch_with_spinner() {
 ###############################################################################
 
 iterm_can_display_images() {
-  [[ "$TERM_PROGRAM" == "iTerm.app" || "$LC_TERMINAL" == "iTerm2" ]]
+  is_iterm
 }
 
 tty_is_available() {

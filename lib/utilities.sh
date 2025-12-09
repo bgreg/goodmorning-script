@@ -120,3 +120,14 @@ require_non_empty() {
   local value="$1"
   [[ -n "$value" ]]
 }
+
+###############################################################################
+# Display Utilities
+###############################################################################
+
+# Display warning message with safe_display
+# Usage: show_warning_message "message text"
+show_warning_message() {
+  local message="$1"
+  show_setup_message "$(echo_yellow "  ⚠ $message")"
+}

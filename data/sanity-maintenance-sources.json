@@ -1,0 +1,145 @@
+{
+  "sitemaps": [],
+  "categories": {
+    "comics": [
+      {
+        "title": "Random XKCD",
+        "url": "xkcd:random"
+      },
+      {
+        "title": "Random CommitStrip",
+        "url": "https://www.commitstrip.com/?random=1"
+      },
+      {
+        "title": "Cyanide & Happiness",
+        "url": "https://explosm.net/comics/random"
+      },
+      {
+        "title": "DevHumor",
+        "url": "https://devhumor.com/"
+      }
+    ],
+    "memes": [
+      {
+        "title": "Imgflip Memes",
+        "url": "https://imgflip.com/meme"
+      },
+      {
+        "title": "I Can Has Cheezburger",
+        "url": "https://icanhas.cheezburger.com/"
+      },
+      {
+        "title": "InspiroBot",
+        "url": "https://inspirobot.me/"
+      },
+      {
+        "title": "Bored Panda",
+        "url": "https://www.boredpanda.com/"
+      }
+    ],
+    "games": [
+      {
+        "title": "2048",
+        "url": "https://play2048.co/"
+      },
+      {
+        "title": "Wordle",
+        "url": "https://www.nytimes.com/games/wordle/index.html"
+      },
+      {
+        "title": "Chess.com",
+        "url": "https://www.chess.com/play/online"
+      },
+      {
+        "title": "Sudoku",
+        "url": "https://sudoku.com/"
+      },
+      {
+        "title": "Tetris",
+        "url": "https://tetris.com/play-tetris"
+      },
+      {
+        "title": "Slither.io",
+        "url": "https://slither.io/"
+      },
+      {
+        "title": "Krunker.io",
+        "url": "https://krunker.io/"
+      }
+    ],
+    "satire": [
+      {
+        "title": "The Onion - Tech",
+        "url": "https://www.theonion.com/tech"
+      },
+      {
+        "title": "The Onion - News",
+        "url": "https://www.theonion.com/news"
+      },
+      {
+        "title": "The Onion - Entertainment",
+        "url": "https://www.theonion.com/entertainment"
+      },
+      {
+        "title": "The Onion - Sports",
+        "url": "https://www.theonion.com/sports"
+      },
+      {
+        "title": "The Onion - Opinion",
+        "url": "https://www.theonion.com/opinion"
+      },
+      {
+        "title": "The Daily WTF",
+        "url": "https://thedailywtf.com/"
+      }
+    ],
+    "forums": [
+      {
+        "title": "Hacker News",
+        "url": "https://news.ycombinator.com/"
+      },
+      {
+        "title": "Lobsters",
+        "url": "https://lobste.rs/"
+      },
+      {
+        "title": "DEV Community",
+        "url": "https://dev.to/"
+      }
+    ],
+    "random": [
+      {
+        "title": "Is The Internet On Fire?",
+        "url": "https://istheinternetonfire.com/"
+      },
+      {
+        "title": "Is It Friday Yet?",
+        "url": "https://isitfridayyet.net/"
+      },
+      {
+        "title": "Does the Dog Die?",
+        "url": "https://www.doesthedogdie.com/"
+      },
+      {
+        "title": "The Useless Web",
+        "url": "https://theuselessweb.com/"
+      },
+      {
+        "title": "Random Street View",
+        "url": "https://randomstreetview.com/"
+      },
+      {
+        "title": "Random Dog",
+        "url": "https://random.dog/"
+      },
+      {
+        "title": "Random Fox",
+        "url": "https://randomfox.ca/"
+      },
+      {
+        "title": "Cat of the Day",
+        "url": "https://catoftheday.com/"
+      }
+    ]
+  }
+}

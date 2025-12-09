@@ -85,6 +85,7 @@ _source_lib() {
 ###############################################################################
 
 # Core dependencies (must load first, order matters)
+_source_lib "lib/utilities.sh" required
 _source_lib "lib/app/colors.sh" required
 _source_lib "lib/app/core.sh" required
 

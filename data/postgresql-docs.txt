@@ -1,0 +1,123 @@
+https://www.postgresql.org/docs/current/tutorial-sql.html|SQL Tutorial
+https://www.postgresql.org/docs/current/queries.html|Queries
+https://www.postgresql.org/docs/current/indexes.html|Indexes
+https://www.postgresql.org/docs/current/mvcc.html|Concurrency Control
+https://www.postgresql.org/docs/current/performance-tips.html|Performance Tips
+https://www.postgresql.org/docs/current/functions.html|Functions and Operators
+https://www.postgresql.org/docs/current/datatype.html|Data Types
+https://www.postgresql.org/docs/current/ddl-constraints.html|Constraints
+https://www.postgresql.org/docs/current/triggers.html|Triggers
+https://www.postgresql.org/docs/current/views.html|Views
+https://www.postgresql.org/docs/current/sql-explain.html|EXPLAIN
+https://www.postgresql.org/docs/current/planner-optimizer.html|Query Planner
+https://www.postgresql.org/docs/current/transaction-iso.html|Transaction Isolation
+https://www.postgresql.org/docs/current/runtime-config.html|Runtime Configuration
+https://www.postgresql.org/docs/current/monitoring.html|Monitoring Database Activity
+https://www.postgresql.org/docs/current/backup.html|Backup and Restore
+https://www.postgresql.org/docs/current/parallel-query.html|Parallel Query
+https://www.postgresql.org/docs/current/partitioning.html|Table Partitioning
+https://www.postgresql.org/docs/current/textsearch.html|Full Text Search
+https://www.postgresql.org/docs/current/functions-json.html|JSON Functions
+https://www.postgresql.org/docs/current/queries-with.html|Common Table Expressions (CTEs)
+https://www.postgresql.org/docs/current/tutorial-window.html|Window Functions
+https://www.postgresql.org/docs/current/functions-window.html|Window Function Reference
+https://www.postgresql.org/docs/current/queries-table-expressions.html|Table Expressions
+https://www.postgresql.org/docs/current/sql-select.html|SELECT Statement
+https://www.postgresql.org/docs/current/sql-insert.html|INSERT Statement
+https://www.postgresql.org/docs/current/sql-update.html|UPDATE Statement
+https://www.postgresql.org/docs/current/sql-delete.html|DELETE Statement
+https://www.postgresql.org/docs/current/dml.html|Data Manipulation
+https://www.postgresql.org/docs/current/ddl.html|Data Definition
+https://www.postgresql.org/docs/current/indexes-types.html|Index Types
+https://www.postgresql.org/docs/current/indexes-multicolumn.html|Multicolumn Indexes
+https://www.postgresql.org/docs/current/indexes-unique.html|Unique Indexes
+https://www.postgresql.org/docs/current/indexes-partial.html|Partial Indexes
+https://www.postgresql.org/docs/current/indexes-expressional.html|Expression Indexes
+https://www.postgresql.org/docs/current/plpgsql.html|PL/pgSQL Language
+https://www.postgresql.org/docs/current/plpgsql-declarations.html|PL/pgSQL Declarations
+https://www.postgresql.org/docs/current/plpgsql-control-structures.html|PL/pgSQL Control Structures
+https://www.postgresql.org/docs/current/plpgsql-cursors.html|PL/pgSQL Cursors
+https://www.postgresql.org/docs/current/plpgsql-errors-and-messages.html|PL/pgSQL Error Handling
+https://www.postgresql.org/docs/current/sql-createfunction.html|CREATE FUNCTION
+https://www.postgresql.org/docs/current/xfunc.html|User-Defined Functions
+https://www.postgresql.org/docs/current/sql-do.html|DO Statement
+https://www.postgresql.org/docs/current/high-availability.html|High Availability
+https://www.postgresql.org/docs/current/warm-standby.html|Warm Standby Servers
+https://www.postgresql.org/docs/current/hot-standby.html|Hot Standby
+https://www.postgresql.org/docs/current/runtime-config-replication.html|Replication Configuration
+https://www.postgresql.org/docs/current/logical-replication.html|Logical Replication
+https://www.postgresql.org/docs/current/logical-replication-architecture.html|Logical Replication Architecture
+https://www.postgresql.org/docs/current/logical-replication-publication.html|Publications
+https://www.postgresql.org/docs/current/logical-replication-subscription.html|Subscriptions
+https://www.postgresql.org/docs/current/sql-createpublication.html|CREATE PUBLICATION
+https://www.postgresql.org/docs/current/sql-createsubscription.html|CREATE SUBSCRIPTION
+https://www.postgresql.org/docs/current/datatype-json.html|JSON Types
+https://www.postgresql.org/docs/current/functions-json.html|JSON Functions and Operators
+https://www.postgresql.org/docs/current/datatype-xml.html|XML Type
+https://www.postgresql.org/docs/current/functions-xml.html|XML Functions
+https://www.postgresql.org/docs/current/sql-creatematerializedview.html|CREATE MATERIALIZED VIEW
+https://www.postgresql.org/docs/current/rules-materializedviews.html|Materialized Views
+https://www.postgresql.org/docs/current/sql-refreshmaterializedview.html|REFRESH MATERIALIZED VIEW
+https://www.postgresql.org/docs/current/postgres-fdw.html|postgres_fdw
+https://www.postgresql.org/docs/current/ddl-foreign-data.html|Foreign Data
+https://www.postgresql.org/docs/current/sql-createforeigntable.html|CREATE FOREIGN TABLE
+https://www.postgresql.org/docs/current/sql-createserver.html|CREATE SERVER
+https://www.postgresql.org/docs/current/routine-vacuuming.html|Routine Vacuuming
+https://www.postgresql.org/docs/current/sql-vacuum.html|VACUUM
+https://www.postgresql.org/docs/current/routine-reindex.html|Routine Reindexing
+https://www.postgresql.org/docs/current/sql-analyze.html|ANALYZE
+https://www.postgresql.org/docs/current/sql-cluster.html|CLUSTER
+https://www.postgresql.org/docs/current/auth-methods.html|Authentication Methods
+https://www.postgresql.org/docs/current/client-authentication.html|Client Authentication
+https://www.postgresql.org/docs/current/auth-pg-hba-conf.html|pg_hba.conf File
+https://www.postgresql.org/docs/current/role-attributes.html|Role Attributes
+https://www.postgresql.org/docs/current/role-membership.html|Role Membership
+https://www.postgresql.org/docs/current/sql-createrole.html|CREATE ROLE
+https://www.postgresql.org/docs/current/sql-grant.html|GRANT
+https://www.postgresql.org/docs/current/sql-revoke.html|REVOKE
+https://www.postgresql.org/docs/current/ddl-priv.html|Privileges
+https://www.postgresql.org/docs/current/pgtrgm.html|pg_trgm Extension
+https://www.postgresql.org/docs/current/pgstatstatements.html|pg_stat_statements
+https://www.postgresql.org/docs/current/hstore.html|hstore Extension
+https://www.postgresql.org/docs/current/btree-gin.html|btree_gin
+https://www.postgresql.org/docs/current/btree-gist.html|btree_gist
+https://www.postgresql.org/docs/current/contrib.html|Additional Supplied Modules
+https://www.postgresql.org/docs/current/using-explain.html|Using EXPLAIN
+https://www.postgresql.org/docs/current/planner-stats.html|Statistics Used by the Planner
+https://www.postgresql.org/docs/current/explicit-locking.html|Explicit Locking
+https://www.postgresql.org/docs/current/applevel-consistency.html|Application-Level Consistency Checks
+https://www.postgresql.org/docs/current/mvcc-intro.html|Introduction to MVCC
+https://www.postgresql.org/docs/current/sql-lock.html|LOCK
+https://www.postgresql.org/docs/current/runtime-config-query.html|Query Planning Configuration
+https://www.postgresql.org/docs/current/runtime-config-resource.html|Resource Consumption
+https://www.postgresql.org/docs/current/runtime-config-wal.html|Write Ahead Log
+https://www.postgresql.org/docs/current/wal-intro.html|Write-Ahead Logging (WAL)
+https://www.postgresql.org/docs/current/wal-configuration.html|WAL Configuration
+https://www.postgresql.org/docs/current/sql-prepare.html|PREPARE
+https://www.postgresql.org/docs/current/sql-execute.html|EXECUTE
+https://www.postgresql.org/docs/current/sql-createaggregate.html|CREATE AGGREGATE
+https://www.postgresql.org/docs/current/xaggr.html|User-Defined Aggregates
+https://www.postgresql.org/docs/current/sql-createtype.html|CREATE TYPE
+https://www.postgresql.org/docs/current/xtypes.html|User-Defined Types
+https://www.postgresql.org/docs/current/rowtypes.html|Composite Types
+https://www.postgresql.org/docs/current/arrays.html|Arrays
+https://www.postgresql.org/docs/current/rangetypes.html|Range Types
+https://www.postgresql.org/docs/current/sql-createcast.html|CREATE CAST
+https://www.postgresql.org/docs/current/typeconv.html|Type Conversion
+https://www.postgresql.org/docs/current/collation.html|Collation Support
+https://www.postgresql.org/docs/current/textsearch-intro.html|Full Text Search Introduction
+https://www.postgresql.org/docs/current/textsearch-tables.html|Tables and Indexes for Text Search
+https://www.postgresql.org/docs/current/textsearch-controls.html|Controlling Text Search
+https://www.postgresql.org/docs/current/textsearch-features.html|Additional Text Search Features
+https://www.postgresql.org/docs/current/textsearch-psql.html|Text Search in psql
+https://www.postgresql.org/docs/current/datatype-enum.html|Enumerated Types
+https://www.postgresql.org/docs/current/datatype-geometric.html|Geometric Types
+https://www.postgresql.org/docs/current/datatype-net-types.html|Network Address Types
+https://www.postgresql.org/docs/current/datatype-uuid.html|UUID Type
+https://www.postgresql.org/docs/current/ecpg.html|Embedded SQL (ECPG)
+https://www.postgresql.org/docs/current/information-schema.html|Information Schema
+https://www.postgresql.org/docs/current/catalogs.html|System Catalogs
+https://www.postgresql.org/docs/current/views-overview.html|System Views
+https://www.postgresql.org/docs/current/disk-usage.html|Determining Disk Usage
+https://www.postgresql.org/docs/current/manage-ag-tablespaces.html|Tablespaces
+https://www.postgresql.org/docs/current/sql-createtablespace.html|CREATE TABLESPACE

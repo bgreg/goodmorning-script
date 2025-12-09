@@ -2,9 +2,10 @@
 #shellspec shell=zsh
 
 Describe 'lib/app/sanity_maintenance.sh - Sanity Maintenance System'
+  Include lib/utilities.sh
   Include lib/app/colors.sh
   Include lib/app/core.sh
-  Include lib/sitemap.sh
+  Include lib/app/sitemap.sh
   Include lib/app/sanity_maintenance.sh
 
   Describe 'show_sanity_maintenance function'
