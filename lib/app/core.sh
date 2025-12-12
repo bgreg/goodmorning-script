@@ -10,6 +10,12 @@
 # - Visual feedback (spinner) for long-running operations
 ###############################################################################
 
+# Constants for spinner timing (must be defined early)
+# Use typeset -gr to ensure global readonly scope when sourced from within a function
+typeset -gr SPINNER_ITERATIONS_PER_SECOND=10
+typeset -gr SPINNER_SLEEP_INTERVAL=0.1
+typeset -gr SPINNER_CLEAR_WIDTH=70
+
 cleanup_background_processes() {
   local pid
 
@@ -292,11 +298,6 @@ run_with_spinner() {
 # Spinner Helper Functions
 ###############################################################################
 
-# Constants for spinner timing
-readonly SPINNER_ITERATIONS_PER_SECOND=10
-readonly SPINNER_SLEEP_INTERVAL=0.1
-readonly SPINNER_CLEAR_WIDTH=70
-
 _hide_cursor() {
   local tty_out="$1"
   printf "\e[?25l" > "$tty_out" 2>/dev/null
@@ -400,22 +401,22 @@ fetch_with_spinner() {
 
   local timeout=${SPINNER_TIMEOUT:-30}
   local max_iterations=$((timeout * SPINNER_ITERATIONS_PER_SECOND))
-  local output=""
+  local temp_file=$(mktemp)
 
-  exec 3< <("${command[@]}" 2>/dev/null)
+  "${command[@]}" > "$temp_file" 2>&1 &
   local pid=$!
 
   if [[ "$use_animation" == "true" ]]; then
-    _run_animated_spinner "$message" "$pid" "$tty_out" "$max_iterations" || return 1
+    _run_animated_spinner "$message" "$pid" "$tty_out" "$max_iterations" || { rm -f "$temp_file"; return 1; }
   else
-    _wait_silently "$pid" "$max_iterations" || return 1
+    _wait_silently "$pid" "$max_iterations" || { rm -f "$temp_file"; return 1; }
   fi
 
   wait "$pid"
   local exit_code=$?
 
-  output=$(cat <&3)
-  exec 3<&-
+  local output=$(cat "$temp_file" 2>/dev/null)
+  rm -f "$temp_file"
 
   if [[ -n "$output" ]]; then
     printf '%s\n' "$output"

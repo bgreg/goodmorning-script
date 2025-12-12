@@ -44,8 +44,8 @@ _start_background_process() {
 # Returns empty string if field is null/missing
 jq_extract() {
   local json="$1"
-  local path="$2"
-  printf '%s' "$json" | jq -r "${path} // empty" 2>/dev/null
+  local jq_path="$2"
+  printf '%s' "$json" | jq -r "${jq_path} // empty" 2>/dev/null
 }
 
 ###############################################################################
