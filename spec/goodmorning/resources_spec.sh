@@ -1,0 +1,98 @@
+#!/usr/bin/env zsh
+#shellspec shell=zsh
+
+Describe 'goodmorning.sh - Resource Management'
+  Before 'source_goodmorning'
+
+  Describe 'Temporary file creation'
+    It 'uses mktemp for secure temp files'
+      When call grep -r 'mktemp' ./lib/
+      The status should be success
+      The output should include "mktemp"
+    End
+
+    It 'uses secure temp file patterns'
+      When call grep 'mktemp' ./lib/app/updates.sh
+      The status should be success
+      The output should include "mktemp"
+    End
+
+    It 'temp files use XXXXXX pattern'
+      When call grep 'PATTERN' ./lib/app/updates.sh
+      The status should be success
+      The output should include "PATTERN"
+    End
+  End
+
+  Describe 'Temp file tracking'
+    It 'defines TEMP_FILES array'
+      When call grep "TEMP_FILES" ./goodmorning.sh
+      The status should be success
+      The output should include "TEMP_FILES"
+    End
+
+    It 'temp files are tracked in updates'
+      When call grep "TEMP_FILES" ./lib/app/updates.sh
+      The status should be success
+      The output should include "TEMP_FILES"
+    End
+  End
+
+  Describe 'Background process management'
+    It 'defines BACKGROUND_PIDS array'
+      When call grep "BACKGROUND_PIDS" ./goodmorning.sh
+      The status should be success
+      The output should include "BACKGROUND_PIDS"
+    End
+
+    It 'background PIDs are tracked in updates'
+      When call grep "BACKGROUND_PIDS" ./lib/app/updates.sh
+      The status should be success
+      The output should include "BACKGROUND_PIDS"
+    End
+  End
+
+  Describe 'Trap handlers'
+    It 'sets up EXIT trap in core'
+      When call grep -E 'trap.*cleanup.*EXIT' "lib/app/core.sh"
+      The status should be success
+      The output should include "trap"
+      The output should include "EXIT"
+    End
+
+    It 'sets up INT trap in core'
+      When call grep -E 'trap.*cleanup.*INT' "lib/app/core.sh"
+      The status should be success
+      The output should include "trap"
+      The output should include "INT"
+    End
+
+    It 'sets up TERM trap in core'
+      When call grep -E 'trap.*cleanup.*TERM' "./lib/app/core.sh"
+      The status should be success
+      The output should include "trap"
+      The output should include "TERM"
+    End
+  End
+
+  Describe 'cleanup_background_processes function'
+    It 'is defined'
+      When call type cleanup_background_processes
+      The status should be success
+      The output should include "cleanup_background_processes"
+      The output should include "function"
+    End
+
+    It 'handles background PID cleanup'
+      When call grep "BACKGROUND_PIDS" ./lib/app/core.sh
+      The status should be success
+      The output should include "BACKGROUND_PIDS"
+    End
+
+    It 'kills background processes'
+      When call grep "kill" ./lib/app/core.sh
+      The status should be success
+      The output should include "kill"
+    End
+  End
+End
