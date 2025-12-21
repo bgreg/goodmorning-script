@@ -1,0 +1,314 @@
+{
+  "sitemaps": [
+    {
+      "title": "PostgreSQL",
+      "sitemap": "https://www.postgresql.org/sitemap.xml"
+    },
+    {
+      "title": "Ruby Documentation",
+      "sitemap": "https://ruby-doc.org/sitemap.xml"
+    },
+    {
+      "title": "Node.js",
+      "sitemap": "https://nodejs.org/sitemap.xml"
+    },
+    {
+      "title": "Next.js",
+      "sitemap": "https://nextjs.org/sitemap.xml"
+    },
+    {
+      "title": "OpenAI API",
+      "sitemap": "https://platform.openai.com/sitemap.xml"
+    },
+    {
+      "title": "Anthropic Claude",
+      "sitemap": "https://docs.anthropic.com/sitemap.xml"
+    },
+    {
+      "title": "Docker",
+      "sitemap": "https://docs.docker.com/sitemap.xml"
+    },
+    {
+      "title": "Kubernetes",
+      "sitemap": "https://kubernetes.io/sitemap.xml"
+    },
+    {
+      "title": "VS Code",
+      "sitemap": "https://code.visualstudio.com/sitemap.xml"
+    },
+    {
+      "title": "JetBrains",
+      "sitemap": "https://www.jetbrains.com/sitemap.xml"
+    },
+    {
+      "title": "PyTorch",
+      "sitemap": "https://pytorch.org/sitemap.xml"
+    },
+    {
+      "title": "TensorFlow",
+      "sitemap": "https://tensorflow.org/sitemap.xml"
+    },
+    {
+      "title": "Redis",
+      "sitemap": "https://redis.io/sitemap.xml"
+    },
+    {
+      "title": "MongoDB",
+      "sitemap": "https://www.mongodb.com/sitemap.xml"
+    },
+    {
+      "title": "Git",
+      "sitemap": "https://git-scm.com/sitemap.xml"
+    },
+    {
+      "title": "Grafana",
+      "sitemap": "https://grafana.com/en/sitemap.xml"
+    },
+    {
+      "title": "OWASP Security",
+      "sitemap": "https://owasp.org/sitemap.xml"
+    },
+    {
+      "title": "OWASP Cheat Sheets",
+      "sitemap": "https://cheatsheetseries.owasp.org/sitemap.xml"
+    },
+    {
+      "title": "PortSwigger Security",
+      "sitemap": "https://portswigger.net/sitemap.xml"
+    },
+    {
+      "title": "Django",
+      "sitemap": "https://docs.djangoproject.com/sitemap.xml"
+    },
+    {
+      "title": "Flask",
+      "sitemap": "https://flask.palletsprojects.com/sitemap.xml"
+    },
+    {
+      "title": "FastAPI",
+      "sitemap": "https://fastapi.tiangolo.com/sitemap.xml"
+    },
+    {
+      "title": "Laravel",
+      "sitemap": "https://laravel.com/sitemap.xml"
+    },
+    {
+      "title": "Symfony",
+      "sitemap": "https://symfony.com/sitemap.xml"
+    },
+    {
+      "title": "Express.js",
+      "sitemap": "https://expressjs.com/sitemap.xml"
+    },
+    {
+      "title": "Elixir",
+      "sitemap": "https://elixir-lang.org/sitemap.xml"
+    },
+    {
+      "title": "HexDocs",
+      "sitemap": "https://hexdocs.pm/sitemap.xml"
+    },
+    {
+      "title": "Kotlin",
+      "sitemap": "https://kotlinlang.org/sitemap.xml"
+    },
+    {
+      "title": "Clojure",
+      "sitemap": "https://clojure.org/sitemap.xml"
+    },
+    {
+      "title": "Julia",
+      "sitemap": "https://julialang.org/sitemap.xml"
+    },
+    {
+      "title": "Dart",
+      "sitemap": "https://dart.dev/sitemap.xml"
+    },
+    {
+      "title": "Vite",
+      "sitemap": "https://vitejs.dev/sitemap.xml"
+    },
+    {
+      "title": "Webpack",
+      "sitemap": "https://webpack.js.org/sitemap.xml"
+    },
+    {
+      "title": "ESLint",
+      "sitemap": "https://eslint.org/sitemap.xml"
+    },
+    {
+      "title": "Prettier",
+      "sitemap": "https://prettier.io/sitemap.xml"
+    },
+    {
+      "title": "Jest",
+      "sitemap": "https://jestjs.io/sitemap.xml"
+    },
+    {
+      "title": "Playwright",
+      "sitemap": "https://playwright.dev/sitemap.xml"
+    },
+    {
+      "title": "Prisma",
+      "sitemap": "https://www.prisma.io/sitemap.xml"
+    },
+    {
+      "title": "Sequelize",
+      "sitemap": "https://sequelize.org/sitemap.xml"
+    },
+    {
+      "title": "TypeORM",
+      "sitemap": "https://typeorm.io/sitemap.xml"
+    },
+    {
+      "title": "Apollo GraphQL",
+      "sitemap": "https://www.apollographql.com/sitemap.xml"
+    },
+    {
+      "title": "tRPC",
+      "sitemap": "https://trpc.io/sitemap.xml"
+    },
+    {
+      "title": "Nuxt",
+      "sitemap": "https://nuxt.com/sitemap.xml"
+    },
+    {
+      "title": "Vue.js",
+      "sitemap": "https://vuejs.org/sitemap.xml"
+    },
+    {
+      "title": "SolidJS",
+      "sitemap": "https://solidjs.com/sitemap.xml"
+    }
+  ],
+  "static": [
+    {
+      "title": "AWS CLI Reference",
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/"
+    },
+    {
+      "title": "AWS IAM Guide",
+      "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/"
+    },
+    {
+      "title": "AWS Lambda Guide",
+      "url": "https://docs.aws.amazon.com/lambda/latest/dg/"
+    },
+    {
+      "title": "AWS S3 Guide",
+      "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/"
+    },
+    {
+      "title": "Linux Man: grep",
+      "url": "https://man7.org/linux/man-pages/man1/grep.1.html"
+    },
+    {
+      "title": "Linux Man: sed",
+      "url": "https://man7.org/linux/man-pages/man1/sed.1.html"
+    },
+    {
+      "title": "Linux Man: awk",
+      "url": "https://man7.org/linux/man-pages/man1/awk.1p.html"
+    },
+    {
+      "title": "Linux Man: find",
+      "url": "https://man7.org/linux/man-pages/man1/find.1.html"
+    },
+    {
+      "title": "Linux Man: curl",
+      "url": "https://man7.org/linux/man-pages/man1/curl.1.html"
+    },
+    {
+      "title": "Linux Man: tar",
+      "url": "https://man7.org/linux/man-pages/man1/tar.1.html"
+    },
+    {
+      "title": "Linux Man: ssh",
+      "url": "https://man7.org/linux/man-pages/man1/ssh.1.html"
+    },
+    {
+      "title": "Linux Man: rsync",
+      "url": "https://man7.org/linux/man-pages/man1/rsync.1.html"
+    },
+    {
+      "title": "Linux Man: ps",
+      "url": "https://man7.org/linux/man-pages/man1/ps.1.html"
+    },
+    {
+      "title": "Linux Man: chmod",
+      "url": "https://man7.org/linux/man-pages/man1/chmod.1.html"
+    },
+    {
+      "title": "Linux Man: xargs",
+      "url": "https://man7.org/linux/man-pages/man1/xargs.1.html"
+    },
+    {
+      "title": "Linux Man: sort",
+      "url": "https://man7.org/linux/man-pages/man1/sort.1.html"
+    },
+    {
+      "title": "Linux Man: uniq",
+      "url": "https://man7.org/linux/man-pages/man1/uniq.1.html"
+    },
+    {
+      "title": "Linux Man: cut",
+      "url": "https://man7.org/linux/man-pages/man1/cut.1.html"
+    },
+    {
+      "title": "Linux Man: diff",
+      "url": "https://man7.org/linux/man-pages/man1/diff.1.html"
+    },
+    {
+      "title": "Linux Kernel Documentation",
+      "url": "https://www.kernel.org/doc/html/latest/"
+    },
+    {
+      "title": "Regex101",
+      "url": "https://regex101.com/"
+    },
+    {
+      "title": "GraphQL Learn",
+      "url": "https://graphql.org/learn/"
+    },
+    {
+      "title": "GitHub Docs",
+      "url": "https://docs.github.com/en"
+    },
+    {
+      "title": "Scikit-learn User Guide",
+      "url": "https://scikit-learn.org/stable/user_guide.html"
+    },
+    {
+      "title": "Python Documentation",
+      "url": "https://docs.python.org/3/"
+    },
+    {
+      "title": "Go Documentation",
+      "url": "https://go.dev/doc/"
+    },
+    {
+      "title": "Rust Book",
+      "url": "https://doc.rust-lang.org/book/"
+    },
+    {
+      "title": "TypeScript Handbook",
+      "url": "https://www.typescriptlang.org/docs/handbook/"
+    },
+    {
+      "title": "Vim Documentation",
+      "url": "https://vimhelp.org/"
+    },
+    {
+      "title": "Zsh Documentation",
+      "url": "https://zsh.sourceforge.io/Doc/"
+    },
+    {
+      "title": "Tmux Wiki",
+      "url": "https://github.com/tmux/tmux/wiki"
+    },
+    {
+      "title": "CWE Top 25",
+      "url": "https://cwe.mitre.org/top25/archive/2023/2023_top25_list.html"
+    }
+  ]
+}
