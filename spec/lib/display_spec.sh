@@ -64,6 +64,11 @@ Describe 'lib/app/display.sh - Display Functions'
       setup_basic_mock() {
         fetch_with_spinner() {
           shift  # Skip the message parameter
+          # Verify we're being called with curl command
+          if [ "$1" != "curl" ]; then
+            echo "Expected curl command, got: $1" >&2
+            return 1
+          fi
           echo "$MOCK_WEATHER_RESPONSE"
         }
       }
