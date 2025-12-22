@@ -50,6 +50,30 @@ Describe 'lib/app/display.sh - Display Functions'
       The status should be success
       The output should not be blank
     End
+
+    It 'requires GOODMORNING_WEATHER_LOCATION to be set'
+      When call grep 'GOODMORNING_WEATHER_LOCATION' "$PROJECT_ROOT/lib/app/display.sh"
+      The status should be success
+      The output should not be blank
+    End
+
+    It 'uses location in wttr.in URL'
+      When call grep 'wttr.in/\${location}' "$PROJECT_ROOT/lib/app/display.sh"
+      The status should be success
+      The output should not be blank
+    End
+
+    It 'shows setup message when location not configured'
+      When call grep 'show_setup_message.*GOODMORNING_WEATHER_LOCATION' "$PROJECT_ROOT/lib/app/display.sh"
+      The status should be success
+      The output should not be blank
+    End
+
+    It 'handles not found response from API'
+      When call grep 'not found:' "$PROJECT_ROOT/lib/app/display.sh"
+      The status should be success
+      The output should not be blank
+    End
   End
 
   Describe 'show_history function'
