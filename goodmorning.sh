@@ -169,6 +169,7 @@ OPEN_LINKS="${GOODMORNING_OPEN_LINKS:-true}"
 
 # Feature flags - briefing sections (all enabled by default)
 SHOW_WEATHER="${GOODMORNING_SHOW_WEATHER:-true}"
+GOODMORNING_WEATHER_LOCATION="${GOODMORNING_WEATHER_LOCATION:-}"
 SHOW_HISTORY="${GOODMORNING_SHOW_HISTORY:-true}"
 SHOW_TECH_VERSIONS="${GOODMORNING_SHOW_TECH_VERSIONS:-true}"
 SHOW_COUNTRY="${GOODMORNING_SHOW_COUNTRY:-true}"
@@ -221,32 +222,84 @@ _setup_output_history() {
   OUTPUT_HISTORY_FILE="$day_dir/goodmorning-${count}.txt"
 }
 
+# Run a single section without preflight checks or background updates
+_run_single_section() {
+  local section="$1"
+
+  # Map section names to functions
+  case "$section" in
+    weather)           show_weather ;;
+    history)           show_history ;;
+    tech-versions)     show_tech_versions ;;
+    country)           show_country_of_day ;;
+    word)              show_word_of_day ;;
+    wikipedia)         show_wikipedia_featured ;;
+    apod)              show_apod ;;
+    cat)               show_cat_of_day ;;
+    calendar)          show_calendar ;;
+    reminders)         show_reminders ;;
+    github)            show_github_notifications ;;
+    github-prs)        show_github_prs ;;
+    github-issues)     show_github_issues ;;
+    alias-suggestions) show_alias_suggestions ;;
+    system-info)       show_system_info ;;
+    learning)          show_daily_learning ;;
+    sanity)            show_sanity_maintenance ;;
+    tips)              show_learning_tips ;;
+    *)
+      echo_error "Unknown section: $section"
+      echo "Run with --help to see available sections"
+      return 1
+      ;;
+  esac
+}
+
 main() {
   # Load zsh utilities module for zparseopts
   zmodload zsh/zutil
 
   # Parse command line arguments using zparseopts
   local -A opts
-  zparseopts -D -E -A opts -- \
+  local -a section_arg
+  zparseopts -D -E -A opts -section:=section_arg -- \
     h -help \
     -noisy \
     -doctor \
     -offline
 
   # Handle help
-  if [[ -n "${opts[--help]}" || -n "${opts[-h]}" ]]; then
+  if (( ${+opts[--help]} || ${+opts[-h]} )); then
     echo "Usage: goodmorning.sh [OPTIONS]"
     show_new_line
     echo "Options:"
-    echo "  --noisy     Enable text-to-speech greeting"
-    echo "  --doctor    Run system diagnostics and validation"
-    echo "  --offline   Run in offline mode (skip network features)"
-    echo "  -h, --help  Show this help message"
+    echo "  --section NAME  Run a single section (skips preflight/updates)"
+    echo "  --noisy         Enable text-to-speech greeting"
+    echo "  --doctor        Run system diagnostics and validation"
+    echo "  --offline       Run in offline mode (skip network features)"
+    echo "  -h, --help      Show this help message"
+    show_new_line
+    echo "Available sections:"
+    echo "  weather, history, tech-versions, country, word, wikipedia, apod,"
+    echo "  cat, calendar, reminders, github, github-prs, github-issues,"
+    echo "  alias-suggestions, system-info, learning, sanity, tips"
     return 0
   fi
 
+  # Handle single section mode (skip all preflight and run just one function)
+  if [[ ${#section_arg[@]} -gt 0 ]]; then
+    # zparseopts stores option name at index 1 and value at index 2
+    # Use the last element to be more robust against zparseopts behavior changes
+    if [[ ${#section_arg[@]} -lt 2 ]]; then
+      echo "Error: --section requires a value" >&2
+      return 1
+    fi
+    local section_name="${section_arg[-1]}"
+    _run_single_section "$section_name"
+    return $?
+  fi
+
   # Handle doctor mode
-  if [[ -n "${opts[--doctor]}" ]]; then
+  if (( ${+opts[--doctor]} )); then
     # Source validation for doctor functions
     if [ -f "$SCRIPT_DIR/lib/validation.sh" ]; then
       source "$SCRIPT_DIR/lib/validation.sh"
@@ -259,12 +312,12 @@ main() {
   fi
 
   # Handle offline mode
-  if [[ -n "${opts[--offline]}" ]]; then
+  if (( ${+opts[--offline]} )); then
     export GOODMORNING_FORCE_OFFLINE=true
   fi
 
   # Handle TTS mode
-  if [[ -n "${opts[--noisy]}" ]]; then
+  if (( ${+opts[--noisy]} )); then
     export GOODMORNING_ENABLE_TTS=true
   fi
 

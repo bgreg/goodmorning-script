@@ -348,9 +348,13 @@ doctor_check_configured_paths() {
 doctor_check_api_keys() {
   validation_section "🔑 API Keys & Authentication"
 
-  # Weather uses wttr.in (free, no API key required)
+  # Weather uses wttr.in (free, requires location to be configured)
   if [[ "${GOODMORNING_SHOW_WEATHER:-true}" == "true" ]]; then
-    validation_pass "Weather: uses wttr.in (no API key required)"
+    if [[ -n "${GOODMORNING_WEATHER_LOCATION:-}" ]]; then
+      validation_pass "Weather: configured for ${GOODMORNING_WEATHER_LOCATION}"
+    else
+      validation_warn "Weather: GOODMORNING_WEATHER_LOCATION not set" "Set to your city (e.g., San_Francisco)"
+    fi
   else
     validation_info "Weather: disabled in config"
   fi

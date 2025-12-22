@@ -599,6 +599,17 @@ setup_section_features() {
   read -r response
   [[ -z "$response" || "$response" =~ ^[Yy]$ ]] && SETUP_SHOW_WEATHER="true" || SETUP_SHOW_WEATHER="false"
 
+  if [[ "$SETUP_SHOW_WEATHER" == "true" ]]; then
+    show_new_line
+    echo_gray "  Weather requires a location (IP geolocation is unreliable)."
+    echo_gray "  Use underscores for spaces (e.g., san_francisco, new_york)"
+    show_new_line
+    echo_green -n "  Your city: "
+    read -r location_input
+    # Lowercase the location for wttr.in compatibility
+    SETUP_WEATHER_LOCATION="${location_input:l}"
+  fi
+
   show_new_line
   section_box "📜 On This Day in History"
   show_new_line
@@ -901,6 +912,7 @@ EOF
 # Briefing feature flags
 export GOODMORNING_SHOW_SETUP_MESSAGES="${SETUP_SHOW_SETUP_MESSAGES:-true}"
 export GOODMORNING_SHOW_WEATHER="${SETUP_SHOW_WEATHER:-true}"
+export GOODMORNING_WEATHER_LOCATION="${SETUP_WEATHER_LOCATION:-}"
 export GOODMORNING_SHOW_HISTORY="${SETUP_SHOW_HISTORY:-true}"
 export GOODMORNING_SHOW_TECH_VERSIONS="${SETUP_SHOW_TECH_VERSIONS:-true}"
 export GOODMORNING_SHOW_SYSTEM_INFO="${SETUP_SHOW_SYSTEM_INFO:-true}"

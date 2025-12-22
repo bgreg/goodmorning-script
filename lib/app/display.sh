@@ -33,11 +33,28 @@ show_banner() {
 
 show_weather() {
   print_section "🌤️  Weather:" "yellow"
-  local weather=$(fetch_with_spinner "Fetching weather..." curl -s --max-time 10 "wttr.in/?format=3")
-  if [ -n "$weather" ]; then
+  local location="${GOODMORNING_WEATHER_LOCATION:-}"
+
+  if [ -z "$location" ]; then
+    show_setup_message "Set GOODMORNING_WEATHER_LOCATION to your city (e.g., San_Francisco)"
+    show_new_line
+    return 0
+  fi
+
+  # Validate location to avoid unsafe characters in the URL
+  if ! [[ "$location" =~ ^[A-Za-z0-9_-]+$ ]]; then
+    echo "Invalid weather location: '$location'" >&2
+    echo "Use only letters, numbers, underscores, and hyphens (e.g., San_Francisco)." >&2
+    show_new_line
+    return 1
+  fi
+  local url="wttr.in/${location}?format=3&u"
+  local weather=$(fetch_with_spinner "Fetching weather..." curl -s --max-time 10 "$url")
+
+  if [ -n "$weather" ] && [[ "$weather" != "not found:"* ]]; then
     echo "$weather"
   else
-    echo "Weather unavailable"
+    echo "Weather unavailable for: $location"
   fi
   show_new_line
 }
