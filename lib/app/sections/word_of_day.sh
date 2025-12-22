@@ -28,26 +28,30 @@ fetch_word_of_day() {
 
   # Use Swift to get definition from macOS dictionary
   local definition
-  definition=$(swift -e "
+  definition=$(swift -e '
 import Foundation
 import CoreServices
-let word = \"$word\"
+let args = CommandLine.arguments
+guard args.count > 1 else { exit(1) }
+let word = args[1]
 if let def = DCSCopyTextDefinition(nil, word as CFString, CFRangeMake(0, word.count))?.takeRetainedValue() as String? {
     print(def)
 }
-" 2>> "$LOG_FILE")
+' -- "$word" 2>> "$LOG_FILE")
 
   # If no definition found, try fallback words
   if [[ -z "$definition" ]]; then
     for fallback in "ephemeral" "serendipity" "eloquent" "resilient" "catalyst"; do
-      definition=$(swift -e "
+      definition=$(swift -e '
 import Foundation
 import CoreServices
-let word = \"$fallback\"
+let args = CommandLine.arguments
+guard args.count > 1 else { exit(1) }
+let word = args[1]
 if let def = DCSCopyTextDefinition(nil, word as CFString, CFRangeMake(0, word.count))?.takeRetainedValue() as String? {
     print(def)
 }
-" 2>> "$LOG_FILE")
+' -- "$fallback" 2>> "$LOG_FILE")
       [[ -n "$definition" ]] && word="$fallback" && break
     done
   fi
