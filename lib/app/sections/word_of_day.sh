@@ -66,8 +66,8 @@ for word in fallbackWords {
 ' 2>> "$LOG_FILE")
 
     if [[ -n "$fallback_result" ]]; then
-      word=$(echo "$fallback_result" | awk '/<<<DEFINITION_DELIMITER>>>/ {exit} {print}' | tr -d '\n')
-      definition=$(echo "$fallback_result" | awk '/<<<DEFINITION_DELIMITER>>>/ {flag=1; next} flag')
+      word=$(echo "$fallback_result" | awk 'BEGIN {found=0} /<<<DEFINITION_DELIMITER>>>/ {found=1; exit} !found {print}' | tr -d '\n')
+      definition=$(echo "$fallback_result" | awk 'BEGIN {found=0} /<<<DEFINITION_DELIMITER>>>/ {found=1; next} found {print}')
     fi
   fi
 
