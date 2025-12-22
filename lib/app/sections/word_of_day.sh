@@ -109,6 +109,6 @@ show_word_of_day() {
     echo_gray "     $part_of_speech"
   fi
   show_new_line
-  echo "$definition" | fold -s -w 70 | sed 's/^/    /'
+  echo "$definition" | fold -s -w 70 | sed 's/^/  /'
   show_new_line
 }
