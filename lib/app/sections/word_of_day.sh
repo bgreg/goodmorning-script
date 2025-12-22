@@ -21,9 +21,18 @@ fetch_word_of_day() {
   # Select a word: filter for interesting words (7-12 chars, lowercase only)
   # Use day of year to pick consistently for the day
   local word
-  word=$(grep -E '^[a-z]{7,12}$' "$dict_file" 2>/dev/null | awk "NR == ($day_of_year * 7) % 5000 + 1" | head -1)
 
-  # Fallback words if dict file fails
+  # Count matching words to ensure selection index is within bounds
+  local total_words selected_index
+  total_words=$(grep -E '^[a-z]{7,12}$' "$dict_file" 2>/dev/null | wc -l | tr -d ' ')
+
+  if [[ -n "$total_words" && "$total_words" -gt 0 ]]; then
+    # Compute a stable index in the range [1, total_words]
+    selected_index=$(( (day_of_year * 7) % total_words + 1 ))
+    word=$(grep -E '^[a-z]{7,12}$' "$dict_file" 2>/dev/null | awk "NR == $selected_index" | head -1)
+  fi
+
+  # Fallback word if dict file fails or selection produced no word
   [[ -z "$word" ]] && word="ephemeral"
 
   # Use Swift to get definition from macOS dictionary
