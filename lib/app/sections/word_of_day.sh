@@ -58,16 +58,16 @@ let fallbackWords = ["ephemeral", "serendipity", "eloquent", "resilient", "catal
 for word in fallbackWords {
     if let def = DCSCopyTextDefinition(nil, word as CFString, CFRangeMake(0, word.count))?.takeRetainedValue() as String? {
         print(word)
-        print("---DEFINITION---")
+        print("<<<DEFINITION_DELIMITER>>>")
         print(def)
         break
     }
 }
 ' 2>> "$LOG_FILE")
-    
+
     if [[ -n "$fallback_result" ]]; then
-      word=$(echo "$fallback_result" | head -1)
-      definition=$(echo "$fallback_result" | sed '1,/---DEFINITION---/d')
+      word=$(echo "$fallback_result" | awk '/<<<DEFINITION_DELIMITER>>>/ {exit} {print}' | tr -d '\n')
+      definition=$(echo "$fallback_result" | awk '/<<<DEFINITION_DELIMITER>>>/ {flag=1; next} flag')
     fi
   fi
 
