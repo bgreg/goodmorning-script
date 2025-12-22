@@ -91,7 +91,7 @@ show_word_of_day() {
   word_data=$(fetch_with_spinner "Looking up word..." fetch_word_of_day)
 
   if [[ -z "$word_data" ]]; then
-    show_setup_message "$(echo_yellow '  ⚠ Could not fetch word of the day')"
+    show_setup_message "$(echo_yellow '  ⚠ Could not find word definition in dictionary')"
     return 0
   fi
 
