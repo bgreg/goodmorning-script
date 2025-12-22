@@ -51,28 +51,114 @@ Describe 'lib/app/display.sh - Display Functions'
       The output should not be blank
     End
 
-    It 'requires GOODMORNING_WEATHER_LOCATION to be set'
-      When call grep 'GOODMORNING_WEATHER_LOCATION' "$PROJECT_ROOT/lib/app/display.sh"
+    # Integration tests with mocked fetch_with_spinner
+    It 'returns early when GOODMORNING_WEATHER_LOCATION is not set'
+      GOODMORNING_WEATHER_LOCATION=""
+      SHOW_SETUP_MESSAGES="true"
+      When call show_weather
       The status should be success
-      The output should not be blank
+      The output should include "Set GOODMORNING_WEATHER_LOCATION"
     End
 
-    It 'uses location in wttr.in URL'
-      When call grep 'wttr.in/\${location}' "$PROJECT_ROOT/lib/app/display.sh"
-      The status should be success
-      The output should not be blank
+    Context 'with mocked fetch_with_spinner'
+      setup_basic_mock() {
+        fetch_with_spinner() {
+          shift  # Skip the message parameter
+          # Verify we're being called with curl command
+          if [ "$1" != "curl" ]; then
+            echo "Expected curl command, got: $1" >&2
+            return 1
+          fi
+          echo "$MOCK_WEATHER_RESPONSE"
+        }
+      }
+
+      Before 'setup_basic_mock'
+
+      It 'successfully fetches weather when location is set'
+        GOODMORNING_WEATHER_LOCATION="San_Francisco"
+        MOCK_WEATHER_RESPONSE="San Francisco ☀️  +72°F"
+        When call show_weather
+        The status should be success
+        The output should include "☀️"
+        The output should include "+72°F"
+      End
+
+      It 'handles not found response from API'
+        GOODMORNING_WEATHER_LOCATION="InvalidCity123"
+        MOCK_WEATHER_RESPONSE="not found: InvalidCity123"
+        When call show_weather
+        The status should be success
+        The output should include "Weather unavailable for"
+        The output should include "InvalidCity123"
+      End
+
+      It 'handles empty response from API'
+        GOODMORNING_WEATHER_LOCATION="TestCity"
+        MOCK_WEATHER_RESPONSE=""
+        When call show_weather
+        The status should be success
+        The output should include "Weather unavailable for"
+        The output should include "TestCity"
+      End
     End
 
-    It 'shows setup message when location not configured'
-      When call grep 'show_setup_message.*GOODMORNING_WEATHER_LOCATION' "$PROJECT_ROOT/lib/app/display.sh"
-      The status should be success
-      The output should not be blank
-    End
+    Context 'URL and parameter validation'
+      It 'uses location in wttr.in URL construction'
+        setup_url_check() {
+          fetch_with_spinner() {
+            shift  # Skip message parameter
+            # Verify URL contains location
+            for arg in "$@"; do
+              if [[ "$arg" == *"wttr.in/New_York"* ]]; then
+                echo "New York 🌧️  +65°F"
+                return 0
+              fi
+            done
+            echo "URL validation failed" >&2
+            return 1
+          }
+        }
+        
+        setup_url_check
+        GOODMORNING_WEATHER_LOCATION="New_York"
+        When call show_weather
+        The status should be success
+        The output should include "🌧️"
+      End
 
-    It 'handles not found response from API'
-      When call grep 'not found:' "$PROJECT_ROOT/lib/app/display.sh"
-      The status should be success
-      The output should not be blank
+      It 'passes correct parameters to curl command'
+        setup_param_check() {
+          fetch_with_spinner() {
+            shift  # Skip message parameter
+            # Check for expected curl command and flags
+            local has_curl=false
+            local has_silent=false
+            local has_timeout=false
+            local has_url=false
+            
+            for arg in "$@"; do
+              [[ "$arg" == "curl" ]] && has_curl=true
+              [[ "$arg" == "-s" ]] && has_silent=true
+              [[ "$arg" == "--max-time" ]] && has_timeout=true
+              [[ "$arg" == *"wttr.in/Boston"* ]] && has_url=true
+            done
+            
+            if $has_curl && $has_silent && $has_timeout && $has_url; then
+              echo "Boston ⛅  +68°F"
+              return 0
+            fi
+            echo "Missing expected curl parameters" >&2
+            return 1
+          }
+        }
+        
+        setup_param_check
+        GOODMORNING_WEATHER_LOCATION="Boston"
+        When call show_weather
+        The status should be success
+        The output should include "⛅"
+      End
     End
   End
 
