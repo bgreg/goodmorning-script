@@ -48,21 +48,27 @@ if let def = DCSCopyTextDefinition(nil, word as CFString, CFRangeMake(0, word.co
 }
 ' -- "$word" 2>> "$LOG_FILE")
 
-  # If no definition found, try fallback words
+  # If no definition found, try fallback words in a single Swift invocation
   if [[ -z "$definition" ]]; then
-    for fallback in "ephemeral" "serendipity" "eloquent" "resilient" "catalyst"; do
-      definition=$(swift -e '
+    local fallback_result
+    fallback_result=$(swift -e '
 import Foundation
 import CoreServices
-let args = CommandLine.arguments
-guard args.count > 1 else { exit(1) }
-let word = args[1]
-if let def = DCSCopyTextDefinition(nil, word as CFString, CFRangeMake(0, word.count))?.takeRetainedValue() as String? {
-    print(def)
+let fallbackWords = ["ephemeral", "serendipity", "eloquent", "resilient", "catalyst"]
+for word in fallbackWords {
+    if let def = DCSCopyTextDefinition(nil, word as CFString, CFRangeMake(0, word.count))?.takeRetainedValue() as String? {
+        print(word)
+        print("---DEFINITION---")
+        print(def)
+        break
+    }
 }
-' -- "$fallback" 2>> "$LOG_FILE")
-      [[ -n "$definition" ]] && word="$fallback" && break
-    done
+' 2>> "$LOG_FILE")
+    
+    if [[ -n "$fallback_result" ]]; then
+      word=$(echo "$fallback_result" | head -1)
+      definition=$(echo "$fallback_result" | sed '1,/---DEFINITION---/d')
+    fi
   fi
 
   [[ -z "$definition" ]] && return 1
