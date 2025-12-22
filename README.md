@@ -279,11 +279,40 @@ brew install figlet
 ### Command Line Options
 
 ```bash
-./goodmorning.sh          # Run with default settings
-./goodmorning.sh --noisy  # Enable text-to-speech greeting
-./goodmorning.sh --doctor # Run system diagnostics and validation
-./goodmorning.sh --help   # Show help message
+./goodmorning.sh               # Run with default settings
+./goodmorning.sh --noisy       # Enable text-to-speech greeting
+./goodmorning.sh --doctor      # Run system diagnostics and validation
+./goodmorning.sh --section cat # Run a single section (skips preflight/updates)
+./goodmorning.sh --help        # Show help message
 ```
+
+**Running Individual Sections:**
+You can run a single section without preflight checks or background updates:
+```bash
+./goodmorning.sh --section weather
+./goodmorning.sh --section word
+./goodmorning.sh --section github-prs
+```
+
+Available sections:
+- `weather` - Current weather conditions
+- `history` - Historical events for today
+- `tech-versions` - Latest versions of tools and technologies
+- `country` - Random country of the day
+- `word` - Word of the day with definition
+- `wikipedia` - Wikipedia featured article
+- `apod` - NASA Astronomy Picture of the Day
+- `cat` - Random cat picture
+- `calendar` - Today's calendar events
+- `reminders` - Upcoming reminders
+- `github` - GitHub notifications
+- `github-prs` - GitHub pull requests requiring review
+- `github-issues` - GitHub issues assigned to you
+- `alias-suggestions` - Shell alias suggestions
+- `system-info` - System information and updates
+- `learning` - Daily learning resource
+- `sanity` - Sanity maintenance tips
+- `tips` - AI-powered learning tips
 
 **Text-to-Speech:**
 By default, the spoken "Good morning" greeting is disabled. Enable it with:
