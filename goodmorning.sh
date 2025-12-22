@@ -287,7 +287,13 @@ main() {
 
   # Handle single section mode (skip all preflight and run just one function)
   if [[ ${#section_arg[@]} -gt 0 ]]; then
-    local section_name="${section_arg[2]}"
+    # zparseopts stores option name at index 1 and value at index 2
+    # Use the last element to be more robust against zparseopts behavior changes
+    if [[ ${#section_arg[@]} -lt 2 ]]; then
+      echo "Error: --section requires a value" >&2
+      return 1
+    fi
+    local section_name="${section_arg[-1]}"
     _run_single_section "$section_name"
     return $?
   fi
