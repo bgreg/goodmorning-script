@@ -1,8 +1,3 @@
-
-
-@../../.claude/common-policies/git.md
-@../../.claude/common-policies/coding.md
-
 # Good Morning Script
 
 Personal daily briefing automation tool for macOS.
@@ -10,6 +5,7 @@ Personal daily briefing automation tool for macOS.
 ## Project Overview
 
 A zsh-based terminal application that provides a comprehensive daily briefing with:
+
 - Weather, calendar events, and reminders
 - GitHub notifications and PR reviews
 - Learning resources and tech version updates
@@ -42,7 +38,7 @@ shellspec spec/lib/        # Run specific test suite
 - **Platform**: macOS (uses osascript, icalBuddy, iTerm2 APIs)
 - **Test Framework**: ShellSpec
 - **Installation**: Local with symlinks in `$HOME/.config`
-- **Development**: `$HOME/workspace/goodmorning-script`
+- **Development**: `$HOME/personal/goodmorning-script`
 
 ## Architecture
 
@@ -74,11 +70,13 @@ goodmorning.sh              # Main entry point
 ## Testing
 
 All changes must include tests:
+
 - Unit tests: `spec/lib/` for library functions
 - Integration tests: `spec/goodmorning/` for main script
 - E2E tests: `spec/e2e/` for real API interactions
 
 Run tests:
+
 ```bash
 shellspec                          # All tests
 shellspec spec/lib/core_spec.sh   # Specific file
@@ -92,10 +90,13 @@ shellspec --tag focus              # Tagged tests
 ## Git Workflow
 
 Follow standard git practices:
+
 - Descriptive commit messages
 - One logical change per commit
 - Test before committing
 - Keep commits focused and atomic
-- IMPORTANT: WRAP ALL LINES AT 120 characters
+- Wrap all lines at 120 characters
 
-ALWAYS:  List assumptions, deliberate reasoning, identify risks, and confirm logical consistency at every step of the process
+## Development Philosophy
+
+List assumptions, deliberate reasoning, identify risks, and confirm logical consistency at every step of the process.
