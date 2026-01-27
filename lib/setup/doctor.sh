@@ -353,7 +353,7 @@ doctor_check_api_keys() {
     if [[ -n "${GOODMORNING_WEATHER_LOCATION:-}" ]]; then
       validation_pass "Weather: configured for ${GOODMORNING_WEATHER_LOCATION}"
     else
-      validation_warn "Weather: GOODMORNING_WEATHER_LOCATION not set" "Set to your city (e.g., San_Francisco)"
+      validation_warn "Weather: GOODMORNING_WEATHER_LOCATION not set" "Set to your city (e.g., San_Francisco, chico,ca)"
     fi
   else
     validation_info "Weather: disabled in config"

@@ -344,7 +344,7 @@ Configuration is managed through environment variables. The setup script handles
 | `GOODMORNING_LOGS_DIR` | Directory for log files | `$GOODMORNING_CONFIG_DIR/logs` | No |
 | `GOODMORNING_OUTPUT_HISTORY_DIR` | Directory for output history | `$GOODMORNING_CONFIG_DIR/output_history` | No |
 | `GOODMORNING_SHOW_WEATHER` | Show weather section | `true` | No |
-| `GOODMORNING_WEATHER_LOCATION` | City for weather (e.g., San_Francisco, London) | (none) | **Yes** |
+| `GOODMORNING_WEATHER_LOCATION` | City for weather (e.g., San_Francisco, London, chico,ca) | (none) | **Yes** |
 | `GOODMORNING_SHOW_HISTORY` | Show history section | `true` | No |
 | `GOODMORNING_SHOW_LEARNING` | Show daily learning section | `true` | No |
 | `GOODMORNING_SHOW_SANITY` | Show sanity maintenance section | `true` | No |
