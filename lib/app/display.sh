@@ -36,15 +36,15 @@ show_weather() {
   local location="${GOODMORNING_WEATHER_LOCATION:-}"
 
   if [ -z "$location" ]; then
-    show_setup_message "Set GOODMORNING_WEATHER_LOCATION to your city (e.g., San_Francisco)"
+    show_setup_message "Set GOODMORNING_WEATHER_LOCATION to your city (e.g., San_Francisco, chico,ca)"
     show_new_line
     return 0
   fi
 
   # Validate location to avoid unsafe characters in the URL
-  if ! [[ "$location" =~ ^[A-Za-z0-9_-]+$ ]]; then
+  if ! [[ "$location" =~ ^[A-Za-z0-9_,.+~-]+$ ]]; then
     echo "Invalid weather location: '$location'" >&2
-    echo "Use only letters, numbers, underscores, and hyphens (e.g., San_Francisco)." >&2
+    echo "Use letters, numbers, commas, periods, underscores, or hyphens (e.g., San_Francisco, chico,ca)." >&2
     show_new_line
     return 1
   fi
