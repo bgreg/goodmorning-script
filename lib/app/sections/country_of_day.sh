@@ -13,45 +13,40 @@ get_country_of_day() {
   local all_names
   local attempt
 
-  # Retry up to 3 times with increasing timeout
-  for attempt in 1 2 3; do
-    all_names=$(fetch_url "https://restcountries.com/v3.1/all?fields=name" $((attempt * 5)))
+  for attempt in 1 2; do
+    all_names=$(fetch_url "https://restcountries.com/v3.1/all?fields=name" $((attempt * 4)))
     [[ -n "$all_names" ]] && break
-    sleep $((RANDOM % 3 + 1))
+    sleep $((RANDOM % 2 + 1))
   done
 
   require_non_empty "$all_names" || return 1
 
-  # Verify response is an array (not an error object)
-  local response_type=$(echo "$all_names" | jq -r 'type' 2>> "$LOG_FILE")
+  local response_type=$(printf '%s\n' "$all_names" | jq -r 'type' 2>> "$LOG_FILE")
   [[ "$response_type" != "array" ]] && return 1
 
-  local count=$(echo "$all_names" | jq 'length' 2>> "$LOG_FILE")
+  local count=$(printf '%s\n' "$all_names" | jq 'length' 2>> "$LOG_FILE")
   [[ -z "$count" || "$count" -eq 0 ]] && return 1
 
   local day_of_year=$(date +%j | sed 's/^0*//')
   local index=$((day_of_year % count))
-  local country_name=$(echo "$all_names" | jq -r ".[$index].name.common" 2>> "$LOG_FILE")
+  local country_name=$(printf '%s\n' "$all_names" | jq -r ".[$index].name.common" 2>> "$LOG_FILE")
   require_non_empty "$country_name" || return 1
 
-  # URL encode the country name (spaces become %20)
   local encoded_name="${country_name// /%20}"
   local country_data
 
-  # Retry up to 3 times for country details
-  for attempt in 1 2 3; do
-    country_data=$(fetch_url "https://restcountries.com/v3.1/name/${encoded_name}?fullText=true" $((attempt * 5)))
+  for attempt in 1 2; do
+    country_data=$(fetch_url "https://restcountries.com/v3.1/name/${encoded_name}?fullText=true" $((attempt * 4)))
     [[ -n "$country_data" ]] && break
-    sleep $((RANDOM % 3 + 1))
+    sleep $((RANDOM % 2 + 1))
   done
 
   require_non_empty "$country_data" || return 1
 
-  # Verify response is an array (not an error object)
-  local detail_type=$(echo "$country_data" | jq -r 'type' 2>> "$LOG_FILE")
+  local detail_type=$(printf '%s\n' "$country_data" | jq -r 'type' 2>> "$LOG_FILE")
   [[ "$detail_type" != "array" ]] && return 1
 
-  echo "$country_data" | jq '.[0]' 2>> "$LOG_FILE"
+  printf '%s\n' "$country_data" | jq '.[0]' 2>> "$LOG_FILE"
 }
 
 show_country_of_day() {
