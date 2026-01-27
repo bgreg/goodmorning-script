@@ -41,7 +41,6 @@ show_weather() {
     return 0
   fi
 
-  # Validate location to avoid unsafe characters in the URL
   if ! [[ "$location" =~ ^[A-Za-z0-9_,.+~-]+$ ]]; then
     echo "Invalid weather location: '$location'" >&2
     echo "Use letters, numbers, commas, periods, underscores, or hyphens (e.g., San_Francisco, chico,ca)." >&2

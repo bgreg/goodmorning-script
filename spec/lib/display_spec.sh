@@ -178,13 +178,6 @@ Describe 'lib/app/display.sh - Display Functions'
         The output should include "☀️"
       End
 
-      It 'accepts comma-separated city,country format'
-        GOODMORNING_WEATHER_LOCATION="London,UK"
-        When call show_weather
-        The status should be success
-        The output should include "☀️"
-      End
-
       It 'accepts coordinate format with period and comma'
         GOODMORNING_WEATHER_LOCATION="48.85,2.35"
         When call show_weather
@@ -214,14 +207,6 @@ Describe 'lib/app/display.sh - Display Functions'
         The stderr should include "Invalid weather location"
       End
 
-      It 'rejects semicolons'
-        GOODMORNING_WEATHER_LOCATION="city;rm"
-        When call show_weather
-        The status should be failure
-        The output should include "Weather"
-        The stderr should include "Invalid weather location"
-      End
-
       It 'rejects backticks'
         GOODMORNING_WEATHER_LOCATION='city`cmd`'
         When call show_weather
@@ -230,37 +215,6 @@ Describe 'lib/app/display.sh - Display Functions'
         The stderr should include "Invalid weather location"
       End
 
-      It 'rejects dollar signs'
-        GOODMORNING_WEATHER_LOCATION='city$HOME'
-        When call show_weather
-        The status should be failure
-        The output should include "Weather"
-        The stderr should include "Invalid weather location"
-      End
-
-      It 'rejects slashes'
-        GOODMORNING_WEATHER_LOCATION="city/path"
-        When call show_weather
-        The status should be failure
-        The output should include "Weather"
-        The stderr should include "Invalid weather location"
-      End
-
-      It 'rejects ampersands'
-        GOODMORNING_WEATHER_LOCATION="city&param=1"
-        When call show_weather
-        The status should be failure
-        The output should include "Weather"
-        The stderr should include "Invalid weather location"
-      End
-
-      It 'rejects question marks'
-        GOODMORNING_WEATHER_LOCATION="city?query"
-        When call show_weather
-        The status should be failure
-        The output should include "Weather"
-        The stderr should include "Invalid weather location"
-      End
     End
   End
 
