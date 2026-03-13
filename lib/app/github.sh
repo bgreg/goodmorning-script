@@ -195,7 +195,12 @@ _display_review_requested_prs() {
   show_new_line
 
   local jq_filter='.data.reviewRequested.nodes[:'"$max_prs"'] | .[]'
-  local jq_format='"  • \(.repository.nameWithOwner)#\(.number): \(.title)\n    🔗 \(.url)\n"'
+  local jq_format
+  if [ -n "$GITHUB_REPO" ]; then
+    jq_format='"  • #\(.number): \(.title)\n    🔗 \(.url)\n"'
+  else
+    jq_format='"  • \(.repository.nameWithOwner)#\(.number): \(.title)\n    🔗 \(.url)\n"'
+  fi
   printf '%s' "$pr_data" | jq -r "$jq_filter | $jq_format" 2>>"$LOG_FILE"
   show_new_line
 }

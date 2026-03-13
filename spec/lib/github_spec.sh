@@ -365,6 +365,27 @@ The output should include "acme/webapp#99"
 End
 End
 
+Describe '_display_review_requested_prs with GITHUB_REPO'
+setup_review_pr_data() {
+  REVIEW_PR_DATA='{"data":{"reviewRequested":{"nodes":[{"number":23,"title":"Accounts report","url":"https://github.com/acme/webapp/pull/23","repository":{"nameWithOwner":"acme/webapp"}}]}}}'
+}
+
+It 'drops repo prefix when GITHUB_REPO is set'
+GITHUB_REPO="acme/webapp"
+setup_review_pr_data
+When call _display_review_requested_prs "$REVIEW_PR_DATA" 1
+The output should include "#23: Accounts report"
+The output should not include "acme/webapp#23"
+End
+
+It 'preserves repo prefix when GITHUB_REPO is unset'
+GITHUB_REPO=""
+setup_review_pr_data
+When call _display_review_requested_prs "$REVIEW_PR_DATA" 1
+The output should include "acme/webapp#23"
+End
+End
+
 Describe 'show_github_prs function'
 It 'is defined'
 When call type show_github_prs
