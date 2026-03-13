@@ -141,10 +141,14 @@ show_github_notifications() {
     return 0
   fi
 
+  local notifications_endpoint="notifications"
+  if [ -n "$GITHUB_REPO" ]; then
+    notifications_endpoint="/repos/${GITHUB_REPO}/notifications"
+  fi
+
   local notifications
   notifications=$(fetch_with_spinner "Fetching GitHub notifications..." \
-    gh api notifications --jq 'length' 2>> "$LOG_FILE")
-
+    gh api "$notifications_endpoint" --jq 'length' 2>> "$LOG_FILE")
 
   if [ $? -ne 0 ] || [ -z "$notifications" ] || ! [[ "$notifications" =~ ^[0-9]+$ ]]; then
     echo "Unable to fetch GitHub notifications"
@@ -159,14 +163,14 @@ show_github_notifications() {
 
     local max="${MAX_GITHUB_NOTIFICATIONS:-5}"
     local jq_filter='.[:'"$max"'] | .[] | "  • \(.subject.type): \(.subject.title) (\(.repository.name))"'
-    local notification_list=$(gh api notifications --jq "$jq_filter" 2>> "$LOG_FILE")
+    local notification_list=$(gh api "$notifications_endpoint" --jq "$jq_filter" 2>> "$LOG_FILE")
 
     if [ -n "$notification_list" ]; then
       echo "$notification_list"
     fi
 
     local pr_filter='[.[] | select(.subject.type == "PullRequest" and .reason == "review_requested")] | length'
-    local pr_reviews=$(gh api notifications --jq "$pr_filter" 2>> "$LOG_FILE")
+    local pr_reviews=$(gh api "$notifications_endpoint" --jq "$pr_filter" 2>> "$LOG_FILE")
     if [ -n "$pr_reviews" ] && [ "$pr_reviews" -gt 0 ]; then
       echo_cyan "  → ${pr_reviews} PR(s) awaiting your review"
     fi

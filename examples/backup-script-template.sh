@@ -30,5 +30,13 @@ echo "Example backup or update tasks:"
 echo "  rsync -av ~/.zshrc ~/.vimrc ~/backups/"
 echo "  vim +PlugUpdate +qall"
 show_new_line
+echo "Monorepo backup examples (for projects using GOODMORNING_GITHUB_REPO):"
+echo "  rsync -av ~/workspace/myapp/services/api/.env ~/backups/myapp/"
+echo "  rsync -av ~/workspace/myapp/services/admin/.env ~/backups/myapp/"
+echo "  rsync -av ~/workspace/myapp/services/checkout/.env ~/backups/myapp/"
+echo "  rsync -av ~/workspace/myapp/services/dashboard/.env ~/backups/myapp/"
+echo "  rsync -av ~/workspace/myapp/compose.yml ~/backups/myapp/"
+echo "  rsync -av ~/.config/goodmorning/ ~/backups/goodmorning/"
+show_new_line
 
 exit 0
