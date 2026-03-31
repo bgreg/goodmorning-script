@@ -25,3 +25,6 @@ logs/.shellspec-quick.log
 
 # Runtime cache (API responses, images)
 cache/
+
+# Design docs and plans (contain personal config examples)
+docs/

@@ -97,6 +97,15 @@ Follow standard git practices:
 - Keep commits focused and atomic
 - Wrap all lines at 120 characters
 
+## No Personal Info in Tracked Files
+
+Never commit personal information to git-tracked files. This includes company names, email addresses, home directory paths, real Jira/GitHub org names, and real ticket keys.
+
+- **Test files**: Use generic placeholders (`test.atlassian.net`, `test@example.com`, `acme/webapp`)
+- **Source code**: Reference config variables, not hardcoded values
+- **Design docs and plans**: Live in `docs/` which is gitignored. They may contain personal info.
+- **Config files**: `config.sh` is gitignored. Personal values belong there only.
+
 ## Development Philosophy
 
 List assumptions, deliberate reasoning, identify risks, and confirm logical consistency at every step of the process.
