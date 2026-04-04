@@ -21,7 +21,7 @@ for arg in "$@"; do
       continue
       ;;
     -*) continue ;;
-    http*) url="$arg" ;;
+    http*|*wttr.in*) url="$arg" ;;
   esac
 done
 

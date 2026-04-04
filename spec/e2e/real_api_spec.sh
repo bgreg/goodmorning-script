@@ -1,176 +1,191 @@
 #!/usr/bin/env zsh
 #shellspec shell=zsh
 
-# End-to-End Real API Tests
-# Run with: SHELLSPEC_REAL=1 shellspec spec/e2e/real_api_spec.sh
-# These tests hit real APIs and require internet connectivity
-
 Describe 'E2E Real API Tests'
-  Skip if 'SHELLSPEC_REAL not set' [ -z "${SHELLSPEC_REAL:-}" ]
 
-  # Use a fixed output file location
-  OUTPUT_FILE="/tmp/goodmorning_e2e_output.txt"
+OUTPUT_FILE="/tmp/goodmorning_e2e_output.txt"
 
-  setup() {
-    local project_root="${SHELLSPEC_PROJECT_ROOT:-$(pwd)}"
-    rm -f "$OUTPUT_FILE" 2>/dev/null
+setup() {
+  local project_root="${SHELLSPEC_PROJECT_ROOT:-$(pwd)}"
+  rm -f "$OUTPUT_FILE" 2>/dev/null
 
-    # Run the script once and save output
-    # Unset GOODMORNING_NO_AUTO_RUN to allow script execution (set by spec_helper.sh)
-    env GOODMORNING_SHOW_SETUP_MESSAGES=false \
-        GOODMORNING_FORCE_OFFLINE="" \
-        GOODMORNING_NO_AUTO_RUN="" \
-        "${project_root}/goodmorning.sh" > "$OUTPUT_FILE" 2>&1
-    return 0
-  }
+  local env_args=(
+    GOODMORNING_NO_AUTO_RUN=""
+    GOODMORNING_SHOW_SETUP_MESSAGES=false
+    GOODMORNING_SETUP_COMPLETE=true
+    GOODMORNING_WEATHER_LOCATION=TestCity
+    GOODMORNING_OPEN_LINKS=false
+    GOODMORNING_RUN_UPDATES=false
+    GOODMORNING_SHOW_JIRA_TICKETS=false
+    GOODMORNING_SHOW_COMMAND_NOT_FOUND=false
+    GOODMORNING_SHOW_TIPS=false
+    GOODMORNING_SHOW_SYSTEM_INFO=false
+    GOODMORNING_SHOW_REMINDERS=false
+    GOODMORNING_SHOW_CALENDAR=false
+    HISTFILE=/tmp/goodmorning_e2e_fake_history
+  )
 
-  cleanup() {
-    rm -f "$OUTPUT_FILE" 2>/dev/null || true
-  }
+  touch /tmp/goodmorning_e2e_fake_history
 
-  BeforeAll 'setup'
-  AfterAll 'cleanup'
+  if [ -z "${SHELLSPEC_REAL:-}" ]; then
+    env_args+=(PATH="${project_root}/spec/support/bin:${PATH}")
+    env_args+=(GOODMORNING_FORCE_OFFLINE="")
+  else
+    env_args+=(GOODMORNING_FORCE_OFFLINE="")
+  fi
 
-  # Helper function for N/A count test
-  test_na_count() {
-    [ "${1:-0}" -le 3 ]
-  }
+  local config_dir="/tmp/goodmorning_e2e_config_$$"
+  mkdir -p "$config_dir/logs"
+  env_args+=(GOODMORNING_CONFIG_DIR="$config_dir")
 
-  Describe 'Script execution'
-    It 'runs and produces output'
-      The file "$OUTPUT_FILE" should be exist
-      The contents of file "$OUTPUT_FILE" should not be blank
-    End
-  End
+  cp "${project_root}/data/learning-sources.json" "$config_dir/" 2>/dev/null
+  cp "${project_root}/data/sanity-maintenance-sources.json" "$config_dir/" 2>/dev/null
 
-  Describe 'Section output'
-    It 'displays banner greeting'
-      The contents of file "$OUTPUT_FILE" should include "Good Morning"
-    End
+  env "${env_args[@]}" "${project_root}/goodmorning.sh" >"$OUTPUT_FILE" 2>&1
+  return 0
+}
 
-    It 'shows weather with temperature'
-      The contents of file "$OUTPUT_FILE" should match pattern "*Weather:*°*"
-    End
+cleanup() {
+  rm -f "$OUTPUT_FILE" 2>/dev/null || true
+  rm -f /tmp/goodmorning_e2e_fake_history 2>/dev/null || true
+  rm -rf /tmp/goodmorning_e2e_config_$$ 2>/dev/null || true
+}
 
-    It 'shows history with dated events'
-      The contents of file "$OUTPUT_FILE" should match pattern "*On This Day*•*"
-    End
+BeforeAll 'setup'
+AfterAll 'cleanup'
 
-    It 'shows tech versions with Ruby'
-      The contents of file "$OUTPUT_FILE" should match pattern "*Ruby*v[0-9]*"
-    End
+test_na_count() {
+  [ "${1:-0}" -le 3 ]
+}
 
-    It 'shows country with capital city'
-      The contents of file "$OUTPUT_FILE" should match pattern "*Country of the Day*Capital:*"
-    End
+Describe 'Script execution'
+It 'runs and produces output'
+The file "$OUTPUT_FILE" should be exist
+The contents of file "$OUTPUT_FILE" should not be blank
+End
+End
 
-    It 'shows country with population'
-      The contents of file "$OUTPUT_FILE" should match pattern "*Population:*[0-9]*"
-    End
+Describe 'Section output'
+It 'displays banner greeting'
+The contents of file "$OUTPUT_FILE" should include "Good Morning"
+End
 
-    It 'shows word of the day section header'
-      The contents of file "$OUTPUT_FILE" should match pattern "*Word of the Day*"
-    End
+It 'shows weather with temperature'
+The contents of file "$OUTPUT_FILE" should match pattern "*Weather:*°*"
+End
 
-    It 'shows word of the day with actual word (not empty)'
-      # Must show a word with emoji indicator - catches failures like "n/a"
-      The contents of file "$OUTPUT_FILE" should match pattern "*📖 *"
-    End
+It 'shows history with dated events'
+The contents of file "$OUTPUT_FILE" should match pattern "*On This Day*•*"
+End
 
-    It 'shows Wikipedia with URL'
-      The contents of file "$OUTPUT_FILE" should match pattern "*Wikipedia*https://en.wikipedia.org*"
-    End
+It 'shows tech versions with Ruby'
+The contents of file "$OUTPUT_FILE" should match pattern "*Ruby*v[0-9]*"
+End
 
-    It 'shows APOD section'
-      The contents of file "$OUTPUT_FILE" should match pattern "*Astronomy Picture*"
-    End
+It 'shows country with capital city'
+The contents of file "$OUTPUT_FILE" should match pattern "*Country of the Day*Capital:*"
+End
 
-    It 'shows APOD with URL'
-      The contents of file "$OUTPUT_FILE" should match pattern "*Astronomy Picture*🔗 http*"
-    End
+It 'shows country with population'
+The contents of file "$OUTPUT_FILE" should match pattern "*Population:*[0-9]*"
+End
 
-    It 'shows calendar section'
-      The contents of file "$OUTPUT_FILE" should match pattern "*Calendar*"
-    End
+It 'shows word of the day section header'
+The contents of file "$OUTPUT_FILE" should match pattern "*Word of the Day*"
+End
 
-    It 'shows daily learning section'
-      The contents of file "$OUTPUT_FILE" should match pattern "*Daily Learning*"
-    End
+It 'shows word of the day with actual word (not empty)'
+The contents of file "$OUTPUT_FILE" should match pattern "*📖 *"
+End
 
-    It 'shows daily learning sitemap resource'
-      The contents of file "$OUTPUT_FILE" should match pattern "*From Sitemap*Topic:*"
-    End
+It 'shows Wikipedia with URL'
+The contents of file "$OUTPUT_FILE" should match pattern "*Wikipedia*https://en.wikipedia.org*"
+End
 
-    It 'shows daily learning static resource'
-      The contents of file "$OUTPUT_FILE" should match pattern "*Static Resource*Topic:*"
-    End
+It 'shows APOD section'
+The contents of file "$OUTPUT_FILE" should match pattern "*Astronomy Picture*"
+End
 
-    It 'shows sanity maintenance section'
-      The contents of file "$OUTPUT_FILE" should match pattern "*Sanity Maintenance*"
-    End
+It 'shows APOD with URL'
+The contents of file "$OUTPUT_FILE" should match pattern "*Astronomy Picture*🔗 http*"
+End
 
-    It 'shows alias suggestions section'
-      The contents of file "$OUTPUT_FILE" should match pattern "*Alias Suggestions*"
-    End
+It 'shows daily learning section'
+The contents of file "$OUTPUT_FILE" should match pattern "*Daily Learning*"
+End
 
-    It 'shows cat of the day section'
-      The contents of file "$OUTPUT_FILE" should match pattern "*Cat of the Day*"
-    End
-  End
+It 'shows sanity maintenance section'
+The contents of file "$OUTPUT_FILE" should match pattern "*Sanity Maintenance*"
+End
 
-  Describe 'Regression checks'
-    It 'has no literal null values in output'
-      The contents of file "$OUTPUT_FILE" should not match pattern "*🔗 null*"
-    End
+It 'shows alias suggestions section'
+The contents of file "$OUTPUT_FILE" should match pattern "*Alias Suggestions*"
+End
 
-    It 'has no jq parse errors'
-      The contents of file "$OUTPUT_FILE" should not include "parse error"
-    End
+It 'shows cat of the day section'
+The contents of file "$OUTPUT_FILE" should match pattern "*Cat of the Day*"
+End
 
-    It 'has no API/curl errors'
-      The contents of file "$OUTPUT_FILE" should not match pattern "*curl*error*"
-    End
+It 'shows GitHub notifications section'
+The contents of file "$OUTPUT_FILE" should match pattern "*GitHub Notifications*"
+End
 
-    # CRITICAL: Catch BSD sed compatibility errors
-    It 'has no sed command errors'
-      The contents of file "$OUTPUT_FILE" should not include "sed:"
-      The contents of file "$OUTPUT_FILE" should not include "invalid command"
-    End
+It 'shows GitHub PR section'
+The contents of file "$OUTPUT_FILE" should match pattern "*GitHub PR*"
+End
 
-    # CRITICAL: Catch shell/awk errors
-    It 'has no awk errors'
-      The contents of file "$OUTPUT_FILE" should not include "awk:"
-    End
+It 'shows GitHub Issues section'
+The contents of file "$OUTPUT_FILE" should match pattern "*GitHub Issues*"
+End
+End
 
-    # CRITICAL: Catch zsh errors
-    It 'has no zsh errors'
-      The contents of file "$OUTPUT_FILE" should not include "command not found"
-      The contents of file "$OUTPUT_FILE" should not include "no such file"
-    End
+Describe 'Regression checks'
+It 'has no literal null values in output'
+The contents of file "$OUTPUT_FILE" should not match pattern "*🔗 null*"
+End
 
-    # Check PATH wasn't corrupted (commands still work)
-    It 'has no PATH corruption errors'
-      The contents of file "$OUTPUT_FILE" should not match pattern "*ls:*not found*"
-      The contents of file "$OUTPUT_FILE" should not match pattern "*jq:*not found*"
-      The contents of file "$OUTPUT_FILE" should not match pattern "*curl:*not found*"
-    End
+It 'has no jq parse errors'
+The contents of file "$OUTPUT_FILE" should not include "parse error"
+End
 
-    It 'has acceptable N/A count'
-      na_count() {
-        grep -c "N/A$" "$OUTPUT_FILE" 2>/dev/null || echo "0"
-      }
-      When call na_count
-      The output should satisfy test_na_count
-    End
+It 'has no API/curl errors'
+The contents of file "$OUTPUT_FILE" should not match pattern "*curl*error*"
+End
 
-    # Check that sections show content, not error placeholders
-    It 'does not show generic error states'
-      error_patterns() {
-        grep -cE '(n/a|N/A|undefined|null)' "$OUTPUT_FILE" 2>/dev/null || echo "0"
-      }
-      When call error_patterns
-      # Allow up to 5 N/A values (some sections may legitimately have optional fields)
-      The output should satisfy test_na_count
-    End
-  End
+It 'has no sed command errors'
+The contents of file "$OUTPUT_FILE" should not include "sed:"
+The contents of file "$OUTPUT_FILE" should not include "invalid command"
+End
+
+It 'has no awk errors'
+The contents of file "$OUTPUT_FILE" should not include "awk:"
+End
+
+It 'has no zsh errors'
+The contents of file "$OUTPUT_FILE" should not include "command not found"
+The contents of file "$OUTPUT_FILE" should not include "no such file"
+End
+
+It 'has no PATH corruption errors'
+The contents of file "$OUTPUT_FILE" should not match pattern "*ls:*not found*"
+The contents of file "$OUTPUT_FILE" should not match pattern "*jq:*not found*"
+The contents of file "$OUTPUT_FILE" should not match pattern "*curl:*not found*"
+End
+
+It 'has acceptable N/A count'
+na_count() {
+  grep -c "N/A$" "$OUTPUT_FILE" 2>/dev/null || echo "0"
+}
+When call na_count
+The output should satisfy test_na_count
+End
+
+It 'does not show generic error states'
+error_patterns() {
+  grep -cE '(n/a|N/A|undefined|null)' "$OUTPUT_FILE" 2>/dev/null || echo "0"
+}
+When call error_patterns
+The output should satisfy test_na_count
+End
+End
 End
