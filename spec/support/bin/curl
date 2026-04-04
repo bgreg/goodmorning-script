@@ -1,0 +1,75 @@
+#!/usr/bin/env zsh
+
+FIXTURES_DIR="$(cd "$(dirname "$0")/../../fixtures" && pwd)"
+
+url=""
+output_file=""
+prev_flag=""
+
+for arg in "$@"; do
+  if [[ -n "$prev_flag" ]]; then
+    case "$prev_flag" in
+      -o|--output) output_file="$arg" ;;
+    esac
+    prev_flag=""
+    continue
+  fi
+
+  case "$arg" in
+    -o|--output|--max-time|-H|--header|-A|--user-agent|-w|--write-out)
+      prev_flag="$arg"
+      continue
+      ;;
+    -*) continue ;;
+    http*) url="$arg" ;;
+  esac
+done
+
+fixture=""
+case "$url" in
+  *wttr.in*)
+    fixture="$FIXTURES_DIR/weather.txt"
+    ;;
+  *wikipedia.org*onthisday*)
+    fixture="$FIXTURES_DIR/history.json"
+    ;;
+  *wikipedia.org*feed/featured*)
+    fixture="$FIXTURES_DIR/wikipedia_featured.json"
+    ;;
+  *api.nasa.gov*apod*)
+    fixture="$FIXTURES_DIR/apod.json"
+    ;;
+  *restcountries.com*all*)
+    fixture="$FIXTURES_DIR/countries_list.json"
+    ;;
+  *restcountries.com*name*)
+    fixture="$FIXTURES_DIR/country_detail.json"
+    ;;
+  *api.thecatapi.com*)
+    fixture="$FIXTURES_DIR/cat_api.json"
+    ;;
+  *xkcd.com/info.0.json*)
+    fixture="$FIXTURES_DIR/xkcd_latest.json"
+    ;;
+  *xkcd.com/*/info.0.json*)
+    fixture="$FIXTURES_DIR/xkcd_specific.json"
+    ;;
+  *api.github.com*tags*|*api.github.com*releases*)
+    fixture="$FIXTURES_DIR/github_tags.json"
+    ;;
+  *)
+    fixture="$FIXTURES_DIR/sitemap.xml"
+    ;;
+esac
+
+if [[ -n "$fixture" && -f "$fixture" ]]; then
+  if [[ -n "$output_file" ]]; then
+    cp "$fixture" "$output_file"
+  else
+    cat "$fixture"
+  fi
+  exit 0
+fi
+
+echo ""
+exit 0

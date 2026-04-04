@@ -1,0 +1,25 @@
+#!/usr/bin/env zsh
+
+FIXTURES_DIR="$(cd "$(dirname "$0")/../../fixtures" && pwd)"
+
+case "$*" in
+  *"auth status"*)
+    exit 0
+    ;;
+  *"api notifications"*)
+    cat "$FIXTURES_DIR/gh_notifications.json"
+    ;;
+  *"api user"*)
+    cat "$FIXTURES_DIR/gh_user.json"
+    ;;
+  *"api graphql"*)
+    cat "$FIXTURES_DIR/gh_graphql.json"
+    ;;
+  *"api rate_limit"*)
+    echo '{"resources":{"core":{"remaining":5000}}}'
+    ;;
+  *)
+    echo "[]"
+    ;;
+esac
+exit 0
