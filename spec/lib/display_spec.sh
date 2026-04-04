@@ -268,12 +268,14 @@ Before 'setup_gh_mock'
 It 'uses repo-scoped endpoint when GITHUB_REPO is set'
 GITHUB_REPO="acme/webapp"
 When call show_github_notifications
+The output should be present
 The contents of file "$GH_CALLS_FILE" should include "/repos/acme/webapp/notifications"
 End
 
 It 'uses global endpoint when GITHUB_REPO is unset'
 GITHUB_REPO=""
 When call show_github_notifications
+The output should be present
 The contents of file "$GH_CALLS_FILE" should include "api notifications"
 The contents of file "$GH_CALLS_FILE" should not include "/repos/"
 End

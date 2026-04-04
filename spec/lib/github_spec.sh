@@ -21,6 +21,7 @@ End
 It 'returns 1 when gh CLI is not installed'
 command_exists() { return 1; }
 When call _validate_github_setup
+The output should be blank
 The status should equal 1
 End
 
@@ -41,6 +42,7 @@ End
 
 It 'returns 1 when rate limit message is present'
 When call _check_github_rate_limit "API rate limit exceeded"
+The output should include "rate limit"
 The status should equal 1
 End
 
@@ -396,6 +398,7 @@ End
 It 'returns early when gh CLI not available'
 command_exists() { [[ "$1" != "gh" ]]; }
 When call show_github_prs
+The output should be present
 The status should be success
 End
 End
@@ -410,6 +413,7 @@ End
 It 'returns early when gh CLI not available'
 command_exists() { [[ "$1" != "gh" ]]; }
 When call show_github_issues
+The output should be present
 The status should be success
 End
 End
