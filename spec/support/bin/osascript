@@ -1,0 +1,7 @@
+#!/usr/bin/env zsh
+case "$*" in
+  *"is running"*) echo "false" ;;
+  *count*) echo "0" ;;
+  *) echo "0" ;;
+esac
+exit 0

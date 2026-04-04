@@ -1,0 +1,4 @@
+#!/usr/bin/env zsh
+echo "Use descriptive variable names for better code readability."
+echo ""
+echo "Source: Clean Code by Robert C. Martin - https://www.example.com/clean-code"

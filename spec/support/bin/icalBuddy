@@ -1,0 +1,7 @@
+#!/usr/bin/env zsh
+case "$*" in
+  *eventsToday*) echo "Team Standup (10:00 AM - 10:30 AM)" ;;
+  *tasksDueBefore*) echo "Review pull requests" ;;
+  *) echo "" ;;
+esac
+exit 0

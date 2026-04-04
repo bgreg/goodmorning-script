@@ -59,8 +59,15 @@ case "$url" in
   *api.github.com*tags*|*api.github.com*releases*)
     fixture="$FIXTURES_DIR/github_tags.json"
     ;;
-  *)
+  *sitemap*)
     fixture="$FIXTURES_DIR/sitemap.xml"
+    ;;
+  https://*)
+    fixture="$FIXTURES_DIR/sitemap.xml"
+    ;;
+  *)
+    echo "mock-curl: unmatched URL: $url" >&2
+    exit 1
     ;;
 esac
 

@@ -1,0 +1,5 @@
+#!/usr/bin/env zsh
+echo "Software Update Tool"
+echo ""
+echo "Finding available software"
+echo "No new software available."

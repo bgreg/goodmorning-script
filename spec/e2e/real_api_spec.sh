@@ -9,6 +9,10 @@ setup() {
   local project_root="${SHELLSPEC_PROJECT_ROOT:-$(pwd)}"
   rm -f "$OUTPUT_FILE" 2>/dev/null
 
+  local xdg_data="/tmp/goodmorning_e2e_xdg_$$"
+  mkdir -p "$xdg_data/zsh"
+  printf "2026-04-01 09:15: foobar\n2026-04-02 10:30: foobar\n2026-04-02 14:00: bazzle\n" >"$xdg_data/zsh/command-not-found.log"
+
   local env_args=(
     GOODMORNING_NO_AUTO_RUN=""
     GOODMORNING_SHOW_SETUP_MESSAGES=false
@@ -17,11 +21,7 @@ setup() {
     GOODMORNING_OPEN_LINKS=false
     GOODMORNING_RUN_UPDATES=false
     GOODMORNING_SHOW_JIRA_TICKETS=false
-    GOODMORNING_SHOW_COMMAND_NOT_FOUND=false
-    GOODMORNING_SHOW_TIPS=false
-    GOODMORNING_SHOW_SYSTEM_INFO=false
-    GOODMORNING_SHOW_REMINDERS=false
-    GOODMORNING_SHOW_CALENDAR=false
+    XDG_DATA_HOME="$xdg_data"
     HISTFILE=/tmp/goodmorning_e2e_fake_history
   )
 
@@ -49,6 +49,7 @@ cleanup() {
   rm -f "$OUTPUT_FILE" 2>/dev/null || true
   rm -f /tmp/goodmorning_e2e_fake_history 2>/dev/null || true
   rm -rf /tmp/goodmorning_e2e_config_$$ 2>/dev/null || true
+  rm -rf /tmp/goodmorning_e2e_xdg_$$ 2>/dev/null || true
 }
 
 BeforeAll 'setup'
@@ -124,6 +125,26 @@ End
 
 It 'shows cat of the day section'
 The contents of file "$OUTPUT_FILE" should match pattern "*Cat of the Day*"
+End
+
+It 'shows calendar section'
+The contents of file "$OUTPUT_FILE" should match pattern "*Calendar*"
+End
+
+It 'shows reminders section'
+The contents of file "$OUTPUT_FILE" should match pattern "*Reminders*"
+End
+
+It 'shows system info section'
+The contents of file "$OUTPUT_FILE" should match pattern "*System Info*"
+End
+
+It 'shows command not found section'
+The contents of file "$OUTPUT_FILE" should match pattern "*Commands Not Found*"
+End
+
+It 'shows learning tips section'
+The contents of file "$OUTPUT_FILE" should match pattern "*Learning Tip*"
 End
 
 It 'shows GitHub notifications section'

@@ -1,0 +1,7 @@
+#!/usr/bin/env zsh
+case "$1" in
+  -productVersion) echo "15.3" ;;
+  -productName) echo "macOS" ;;
+  -buildVersion) echo "24D5050a" ;;
+  *) echo "ProductName:	macOS" ; echo "ProductVersion:	15.3" ; echo "BuildVersion:	24D5050a" ;;
+esac
