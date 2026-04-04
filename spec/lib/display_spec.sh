@@ -289,6 +289,149 @@ The output should not be blank
 End
 End
 
+Describe '_validate_author_email function'
+It 'accepts user@example.com'
+When call _validate_author_email "user@example.com"
+The status should be success
+End
+
+It 'accepts first.last+tag@co.uk'
+When call _validate_author_email "first.last+tag@co.uk"
+The status should be success
+End
+
+It 'rejects email with no at sign'
+When call _validate_author_email "userexample.com"
+The status should be failure
+End
+
+It 'rejects empty string'
+When call _validate_author_email ""
+The status should be failure
+End
+
+It 'rejects email with no domain after at sign'
+When call _validate_author_email "user@"
+The status should be failure
+End
+End
+
+Describe '_build_learning_prompt function'
+It 'personalized type includes context text'
+When call _build_learning_prompt "Added Rails API endpoints" "personalized"
+The output should include "Added Rails API endpoints"
+End
+
+It 'personalized type mentions recent development work'
+When call _build_learning_prompt "some context" "personalized"
+The output should include "recent development work"
+End
+
+It 'personalized type includes Source: requirement'
+When call _build_learning_prompt "some context" "personalized"
+The output should include "Source:"
+End
+
+It 'general type does not include context text'
+When call _build_learning_prompt "Added Rails API endpoints" "general"
+The output should not include "Added Rails API endpoints"
+End
+
+It 'general type includes Source: requirement'
+When call _build_learning_prompt "" "general"
+The output should include "Source:"
+End
+End
+
+Describe '_show_claude_install_message function'
+It 'outputs install message when SHOW_SETUP_MESSAGES is true'
+SHOW_SETUP_MESSAGES="true"
+When call _show_claude_install_message
+The output should include "Install Claude Code"
+End
+
+It 'outputs nothing when SHOW_SETUP_MESSAGES is false'
+SHOW_SETUP_MESSAGES="false"
+GOODMORNING_SHOW_SETUP_MESSAGES="false"
+When call _show_claude_install_message
+The output should be blank
+End
+End
+
+Describe '_get_repo_commits function'
+setup_temp_repo() {
+  TEST_REPO_DIR=$(mktemp -d)
+  git -C "$TEST_REPO_DIR" init --quiet
+  git -C "$TEST_REPO_DIR" config user.email "test@example.com"
+  git -C "$TEST_REPO_DIR" config user.name "Test User"
+  touch "$TEST_REPO_DIR/file.txt"
+  git -C "$TEST_REPO_DIR" add .
+  git -C "$TEST_REPO_DIR" commit --quiet -m "Initial test commit"
+  export GIT_LOOKBACK_DAYS=30
+  export MAX_COMMITS_PER_REPO=10
+  export LOG_FILE="/dev/null"
+}
+
+cleanup_temp_repo() {
+  [ -d "$TEST_REPO_DIR" ] && rm -rf "$TEST_REPO_DIR"
+}
+
+Before 'setup_temp_repo'
+After 'cleanup_temp_repo'
+
+It 'returns commits from a valid repo'
+When call _get_repo_commits "$TEST_REPO_DIR/.git"
+The status should be success
+The output should include "Initial test commit"
+End
+
+It 'returns failure when gitdir does not exist'
+When call _get_repo_commits "/nonexistent/path/.git"
+The status should be failure
+End
+End
+
+Describe '_gather_git_context function'
+It 'returns blank when PROJECT_DIRS is empty'
+PROJECT_DIRS=""
+LOG_FILE="/dev/null"
+GIT_SCAN_DEPTH=2
+GIT_SCAN_TIMEOUT=5
+MAX_REPOS_TO_SCAN=5
+When call _gather_git_context
+The output should be blank
+End
+End
+
+Describe '_generate_and_display_tip function'
+setup_fetch_mock() {
+  fetch_with_spinner() {
+    shift
+    echo "Use meaningful variable names for clarity."
+  }
+  LOG_FILE="/dev/null"
+}
+
+Before 'setup_fetch_mock'
+
+It 'displays tip when fetch_with_spinner returns content'
+When call _generate_and_display_tip "some context" "personalized"
+The output should include "meaningful variable names"
+End
+
+It 'displays personalized fallback when fetch returns empty'
+fetch_with_spinner() { echo ""; }
+When call _generate_and_display_tip "some context" "personalized"
+The output should include "Unable to generate personalized tip"
+End
+
+It 'displays general fallback when fetch returns empty for general type'
+fetch_with_spinner() { echo ""; }
+When call _generate_and_display_tip "" "general"
+The output should include "Claude learning tips unavailable"
+End
+End
+
 Describe 'show_alias_suggestions function'
 It 'is defined'
 When call type show_alias_suggestions
