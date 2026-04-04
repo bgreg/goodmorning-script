@@ -1,0 +1,7 @@
+{
+  "events": [
+    {"year": "1969", "text": "Apollo 11 launches from Kennedy Space Center"},
+    {"year": "1776", "text": "Continental Congress votes to adopt the Declaration of Independence"},
+    {"year": "1903", "text": "Wright brothers complete first powered flight at Kitty Hawk"}
+  ]
+}

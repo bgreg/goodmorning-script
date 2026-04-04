@@ -1,0 +1,13 @@
+[
+  {
+    "name": {"common": "Japan", "official": "Japan"},
+    "capital": ["Tokyo"],
+    "region": "Asia",
+    "subregion": "Eastern Asia",
+    "population": 125836021,
+    "area": 377975,
+    "flag": "🇯🇵",
+    "languages": {"jpn": "Japanese"},
+    "currencies": {"JPY": {"name": "Japanese yen", "symbol": "¥"}}
+  }
+]
