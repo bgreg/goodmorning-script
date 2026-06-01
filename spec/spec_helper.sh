@@ -5,7 +5,7 @@
 
 # shellcheck shell=bash
 
-set +e  # ShellSpec handles errors
+set +e # ShellSpec handles errors
 
 # Project paths - use SHELLSPEC_PROJECT_ROOT which ShellSpec provides
 export PROJECT_ROOT="${SHELLSPEC_PROJECT_ROOT:-$(pwd)}"
@@ -21,7 +21,7 @@ mock_open_command() {
 
   open() {
     echo "[MOCK] Would open: $*" >&2
-    echo "$*" >> "$OPEN_CALLS_LOG"
+    echo "$*" >>"$OPEN_CALLS_LOG"
     return 0
   }
 
@@ -33,7 +33,7 @@ mock_say_command() {
 
   say() {
     echo "[MOCK] Would say: $*" >&2
-    echo "$*" >> "$SAY_CALLS_LOG"
+    echo "$*" >>"$SAY_CALLS_LOG"
     return 0
   }
 
@@ -82,15 +82,6 @@ cleanup_mocks() {
 # ShellSpec AfterAll hook
 spec_helper_cleanup() {
   cleanup_mocks
-}
-
-# Verification helpers
-url_was_opened() {
-  [ -f "$OPEN_CALLS_LOG" ] && grep -q "$1" "$OPEN_CALLS_LOG"
-}
-
-say_was_called() {
-  [ -f "$SAY_CALLS_LOG" ] && grep -q "$1" "$SAY_CALLS_LOG"
 }
 
 # Source script safely

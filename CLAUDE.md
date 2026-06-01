@@ -38,7 +38,7 @@ shellspec spec/lib/        # Run specific test suite
 - **Platform**: macOS (uses osascript, icalBuddy, iTerm2 APIs)
 - **Test Framework**: ShellSpec
 - **Installation**: Local with symlinks in `$HOME/.config`
-- **Development**: `$HOME/personal/goodmorning-script`
+- **Development**: `$HOME/Personal/goodmorning-script`
 
 ## Architecture
 

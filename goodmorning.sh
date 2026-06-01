@@ -130,7 +130,7 @@ done
 _source_lib "lib/app/section_registry.sh"
 
 # Daily content sections (order doesn't matter)
-for section in country_of_day word_of_day wikipedia_featured astronomy_picture cat_of_day alias_suggestions system_info jira_tickets; do
+for section in country_of_day word_of_day wikipedia_featured astronomy_picture cat_of_day alias_suggestions system_info jira_tickets command_not_found; do
   _source_lib "lib/app/sections/${section}.sh"
 done
 
@@ -189,6 +189,7 @@ SHOW_GITHUB_PRS="${GOODMORNING_SHOW_GITHUB_PRS:-true}"
 SHOW_GITHUB_ISSUES="${GOODMORNING_SHOW_GITHUB_ISSUES:-true}"
 SHOW_JIRA_TICKETS="${GOODMORNING_SHOW_JIRA_TICKETS:-true}"
 SHOW_ALIAS_SUGGESTIONS="${GOODMORNING_SHOW_ALIAS_SUGGESTIONS:-true}"
+SHOW_COMMAND_NOT_FOUND="${GOODMORNING_SHOW_COMMAND_NOT_FOUND:-true}"
 SHOW_SYSTEM_INFO="${GOODMORNING_SHOW_SYSTEM_INFO:-true}"
 SHOW_LEARNING="${GOODMORNING_SHOW_LEARNING:-true}"
 SHOW_SANITY="${GOODMORNING_SHOW_SANITY:-true}"
@@ -249,6 +250,7 @@ _run_single_section() {
     github-issues)     show_github_issues ;;
     jira-tickets)      show_jira_tickets ;;
     alias-suggestions) show_alias_suggestions ;;
+    command-not-found) show_command_not_found ;;
     system-info)       show_system_info ;;
     learning)          show_daily_learning ;;
     sanity)            show_sanity_maintenance ;;
@@ -288,7 +290,8 @@ main() {
     echo "Available sections:"
     echo "  weather, history, tech-versions, country, word, wikipedia, apod,"
     echo "  cat, calendar, reminders, github, github-prs, github-issues,"
-    echo "  jira-tickets, alias-suggestions, system-info, learning, sanity, tips"
+    echo "  jira-tickets, alias-suggestions, command-not-found, system-info,"
+    echo "  learning, sanity, tips"
     return 0
   fi
 
@@ -402,6 +405,7 @@ main() {
   [[ "$SHOW_GITHUB_ISSUES" == "true" ]] && show_github_issues
   [[ "$SHOW_JIRA_TICKETS" == "true" ]] && show_jira_tickets
   [[ "$SHOW_ALIAS_SUGGESTIONS" == "true" ]] && show_alias_suggestions
+  [[ "$SHOW_COMMAND_NOT_FOUND" == "true" ]] && show_command_not_found
   [[ "$SHOW_SYSTEM_INFO" == "true" ]] && show_system_info
   [[ "$SHOW_LEARNING" == "true" ]] && show_daily_learning
   [[ "$SHOW_SANITY" == "true" ]] && show_sanity_maintenance
