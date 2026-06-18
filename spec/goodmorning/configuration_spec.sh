@@ -47,6 +47,32 @@ Describe 'goodmorning.sh - Configuration'
     End
   End
 
+  Describe 'Background update flags'
+    It 'defaults UPDATE_HOMEBREW to false'
+      unset GOODMORNING_UPDATE_HOMEBREW
+      When call source_goodmorning
+      The variable UPDATE_HOMEBREW should equal "false"
+    End
+
+    It 'respects GOODMORNING_UPDATE_HOMEBREW override'
+      export GOODMORNING_UPDATE_HOMEBREW="true"
+      When call source_goodmorning
+      The variable UPDATE_HOMEBREW should equal "true"
+    End
+
+    It 'defaults UPDATE_CLAUDE to false'
+      unset GOODMORNING_UPDATE_CLAUDE
+      When call source_goodmorning
+      The variable UPDATE_CLAUDE should equal "false"
+    End
+
+    It 'respects GOODMORNING_UPDATE_CLAUDE override'
+      export GOODMORNING_UPDATE_CLAUDE="true"
+      When call source_goodmorning
+      The variable UPDATE_CLAUDE should equal "true"
+    End
+  End
+
   Describe 'Resource limits'
     It 'sets MAX_REMINDERS with default'
       The variable MAX_REMINDERS should not be blank
